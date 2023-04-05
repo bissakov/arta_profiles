@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import json
 import os
 import time
 import warnings
@@ -158,37 +159,28 @@ def test(user, base_url, iin):
 class AsyncTest:
     def __init__(self, user, base_url, iins):
         self.base_url = base_url
-        self.iins = iins[:1000]
+        self.iins = iins
         self.results = []
         self.errored = []
         self.headers = get_headers()
         self.headers['Authorization'] = f'Bearer {user.token}'
         self.headers['Content-Type'] = 'application/json'
-        self.request_pbar = tqdm(total=len(self.iins), desc='Requests', colour='green', leave=True, position=0)
-        self.response_pbar = tqdm(total=len(self.iins), desc='Responses', colour='cyan', leave=True, position=1)
-
-    async def log_request(self, request: httpx.Request):
-        self.request_pbar.update(1)
-
-    async def log_response(self, response: httpx.Response):
-        try:
-            self.response_pbar.update(1)
-            response.raise_for_status()
-        except httpx.HTTPStatusError as e:
-            pass
+        self.pbar = tqdm(total=len(self.iins), colour='green')
 
     async def get_family_data(self, client: httpx.AsyncClient, iin: int):
         payload = {'iin': iin}
-        _ = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
+        response = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
+        json_data = response.json()
+        with open('../person_data/data.json', 'a') as f:
+            f.write(json.dumps(json_data) + ',')
+        self.pbar.update(1)
 
-    async def main(self):
-        async_client = httpx.AsyncClient(event_hooks={'request': [self.log_request], 'response': [self.log_response]},
-                                         headers=self.headers, timeout=None)
+    async def run(self):
+        async_client = httpx.AsyncClient(headers=self.headers, timeout=None)
         async with async_client as client:
             tasks = [self.get_family_data(client, iin) for iin in self.iins]
             await asyncio.gather(*tasks)
-        self.request_pbar.close()
-        self.response_pbar.close()
+        self.pbar.close()
 
 
 def main():
@@ -218,20 +210,22 @@ def main():
 
     # test(user, base_url, iins[0])
 
+    with open('../person_data/data.json', 'w') as f:
+        f.write('[')
+
     start_time = time.perf_counter()
 
     async_test = AsyncTest(user, base_url, iins)
-    asyncio.run(async_test.main())
-
-    # results = []
-    # tasks = []
-    # for iin in iins:
-    #     tasks.append(get_family_data(iin, base_url))
+    asyncio.run(async_test.run())
 
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
 
+    with open('../person_data/data.json', 'a') as f:
+        f.write(']')
+
     print("Elapsed time: {:.4f} seconds".format(elapsed_time))
+
     pass
 
 
