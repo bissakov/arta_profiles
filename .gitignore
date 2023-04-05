@@ -1,7 +1,7 @@
 .idea
 person_list/*
 person_data/*
-
+dev/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
