@@ -8,6 +8,7 @@ from typing import Dict, List
 import httpx
 import pandas as pd
 from dotenv import load_dotenv
+from tqdm.auto import tqdm
 
 
 @dataclass
