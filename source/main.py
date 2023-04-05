@@ -156,10 +156,21 @@ def test(user, base_url, iin):
     pass
 
 
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        func(*args, **kwargs)
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        print("Elapsed time: {:.4f} seconds".format(elapsed_time))
+
+    return wrapper
+
+
 class AsyncTest:
     def __init__(self, user, base_url, iins):
         self.base_url = base_url
-        self.iins = iins
+        self.iins = iins[:100]
         self.results = []
         self.errored = []
         self.headers = get_headers()
@@ -169,10 +180,7 @@ class AsyncTest:
 
     async def get_family_data(self, client: httpx.AsyncClient, iin: int):
         payload = {'iin': iin}
-        response = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
-        json_data = response.json()
-        with open('../person_data/data.json', 'a') as f:
-            f.write(json.dumps(json_data) + ',')
+        _ = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
         self.pbar.update(1)
 
     async def run(self):
@@ -181,6 +189,12 @@ class AsyncTest:
             tasks = [self.get_family_data(client, iin) for iin in self.iins]
             await asyncio.gather(*tasks)
         self.pbar.close()
+
+
+@timer
+def async_test(user: User, base_url: str, iins: list):
+    async_obj = AsyncTest(user=user, base_url=base_url, iins=iins)
+    asyncio.run(async_obj.run())
 
 
 def main():
@@ -210,21 +224,7 @@ def main():
 
     # test(user, base_url, iins[0])
 
-    with open('../person_data/data.json', 'w') as f:
-        f.write('[')
-
-    start_time = time.perf_counter()
-
-    async_test = AsyncTest(user, base_url, iins)
-    asyncio.run(async_test.run())
-
-    end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
-
-    with open('../person_data/data.json', 'a') as f:
-        f.write(']')
-
-    print("Elapsed time: {:.4f} seconds".format(elapsed_time))
+    async_test(user=user, base_url=base_url, iins=iins)
 
     pass
 
