@@ -154,6 +154,36 @@ def test(user, base_url, iin):
     pass
 
 
+class AsyncTest:
+    def __init__(self, user, base_url, iins):
+        self.base_url = base_url
+        self.iins = iins
+        self.results = []
+        self.headers = get_headers()
+        self.headers['Authorization'] = f'Bearer {user.token}'
+        self.headers['Content-Type'] = 'application/json'
+
+    @staticmethod
+    async def log_request(request: httpx.Request):
+        print(f'Request: {request.method} {request.url}')
+
+    @staticmethod
+    async def log_response(response: httpx.Response):
+        request = response.request
+        print(f'Status {response.status_code}')
+
+    async def get_family_data(self, iin: int):
+        payload = {'iin': iin}
+        async with httpx.AsyncClient(event_hooks={'request': [self.log_request], 'response': [self.log_response]}, headers=self.headers, timeout=120) as client:
+            response = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
+            self.results.append(response.json())
+            return
+
+    async def main(self):
+        tasks = [self.get_family_data(iin) for iin in self.iins[:10]]
+        await asyncio.gather(*tasks)
+
+
 def main():
     load_dotenv()
 
@@ -179,6 +209,22 @@ def main():
 
     iins = get_iins()
 
+    # test(user, base_url, iins[0])
+
+    start_time = time.perf_counter()
+
+    async_test = AsyncTest(user, base_url, iins)
+    asyncio.run(async_test.main())
+
+    # results = []
+    # tasks = []
+    # for iin in iins:
+    #     tasks.append(get_family_data(iin, base_url))
+
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+
+    print("Elapsed time: {:.4f} seconds".format(elapsed_time))
     pass
 
 
