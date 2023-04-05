@@ -61,7 +61,7 @@ def get_person_list(user: User, base_url: str) -> bytes:
 
 
 def get_excel_file_path() -> str:
-    person_list_dir = fr'D:\Work\python_rpa\arta\person_list'
+    person_list_dir = fr'D:\Work\python_rpa\arta_profiles\person_list'
     return next((os.path.join(person_list_dir, file)
                  for file in os.listdir(person_list_dir)
                  if file.endswith('.xlsx')), None)
@@ -95,7 +95,7 @@ def main():
     # person_list_file = get_excel_file_path()
     # if not person_list_file:
     #     excel_data = get_person_list(user=user, base_url=base_url)
-    #     with open(fr'D:\Work\python_rpa\arta\person_list\person_list__{start_time}.xlsx', 'wb') as output:
+    #     with open(fr'D:\Work\python_rpa\arta_profiles\person_list\person_list__{start_time}.xlsx', 'wb') as output:
     #         output.write(excel_data)
 
     iins = get_iins()
