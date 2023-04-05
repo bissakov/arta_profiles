@@ -158,31 +158,37 @@ def test(user, base_url, iin):
 class AsyncTest:
     def __init__(self, user, base_url, iins):
         self.base_url = base_url
-        self.iins = iins
+        self.iins = iins[:1000]
         self.results = []
+        self.errored = []
         self.headers = get_headers()
         self.headers['Authorization'] = f'Bearer {user.token}'
         self.headers['Content-Type'] = 'application/json'
+        self.request_pbar = tqdm(total=len(self.iins), desc='Requests', colour='green', leave=True, position=0)
+        self.response_pbar = tqdm(total=len(self.iins), desc='Responses', colour='cyan', leave=True, position=1)
 
-    @staticmethod
-    async def log_request(request: httpx.Request):
-        print(f'Request: {request.method} {request.url}')
+    async def log_request(self, request: httpx.Request):
+        self.request_pbar.update(1)
 
-    @staticmethod
-    async def log_response(response: httpx.Response):
-        request = response.request
-        print(f'Status {response.status_code}')
+    async def log_response(self, response: httpx.Response):
+        try:
+            self.response_pbar.update(1)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            pass
 
-    async def get_family_data(self, iin: int):
+    async def get_family_data(self, client: httpx.AsyncClient, iin: int):
         payload = {'iin': iin}
-        async with httpx.AsyncClient(event_hooks={'request': [self.log_request], 'response': [self.log_response]}, headers=self.headers, timeout=120) as client:
-            response = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
-            self.results.append(response.json())
-            return
+        _ = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
 
     async def main(self):
-        tasks = [self.get_family_data(iin) for iin in self.iins[:10]]
-        await asyncio.gather(*tasks)
+        async_client = httpx.AsyncClient(event_hooks={'request': [self.log_request], 'response': [self.log_response]},
+                                         headers=self.headers, timeout=None)
+        async with async_client as client:
+            tasks = [self.get_family_data(client, iin) for iin in self.iins]
+            await asyncio.gather(*tasks)
+        self.request_pbar.close()
+        self.response_pbar.close()
 
 
 def main():
