@@ -41,7 +41,7 @@ def auth(user: User, base_url: str) -> Dict:
         url=url,
         json={'username': user.username, 'password': user.password},
         headers=headers,
-        timeout=None
+        timeout=120
     )
 
     return response.json()
@@ -55,7 +55,7 @@ def get_person_list(user: User, base_url: str) -> bytes:
     headers = get_headers()
     headers['Authorization'] = f'Bearer {user.token}'
 
-    response = httpx.get(url=url, headers=headers, params=querystring, timeout=None)
+    response = httpx.get(url=url, headers=headers, params=querystring, timeout=120)
 
     return response.content
 
