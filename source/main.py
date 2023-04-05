@@ -75,23 +75,102 @@ def get_iins(person_list_file: str = None) -> List[int]:
     return person_list['ИИН'].tolist()
 
 
+def test(user, base_url, iin):
+    url = f'{base_url}/api/card/familyInfo'
+
+    payload = {'iin': iin}
+    headers = get_headers()
+    headers['Authorization'] = f'Bearer {user.token}'
+
+    response = httpx.post(url=url, json=payload, headers=headers)
+
+    data = response.json()
+
+    for i, family_member in enumerate(data.get('familyMemberList'), 1):
+        member_full_name = family_member.get('fullName')
+        print(f'textbox_family_{i}: {member_full_name}')
+
+    # Кол-во человек: numericinput_number_of_family
+    member_number = data.get('family').get('familyQuality').get('cntMem')
+
+    # Кол-во детей: numericinput_number_of_child
+    child_number = data.get('family').get('familyQuality').get('cntChild')
+
+    # Уровень семьи: textbox_level_fam
+    family_level = data.get('family').get('familyQuality').get('tzhsDictionary').get('nameRu')
+
+    # Адрес: textbox_address
+    address = data.get('addressRu')
+
+    # Зарплата: numericinput_salary ?????
+    salary = data.get('family').get('familyQuality').get('incomeAsp')
+
+    # Социальные выплаты: numericinput_cots_vyplaty ?????
+    social_payment = data.get('family').get('familyQuality').get('incomeCbd')
+
+    # Среднедушевой доход: numericinput_cots_income
+    pc_income = data.get('family').get('familyQuality').get('sdd')
+
+    # Совокупный доход для АСП: numericinput_income_ASP
+    # TBA
+
+    # Среднедушевой доход для АСП: numericinput_mid_income_ASP ?????
+    total_income = data.get('family').get('familyQuality').get('sddAsp')
+
+    # Доход: textbox_income
+    income = data.get('family').get('familyQuality').get('familyPm').get('nameRu')
+
+    # Рекомендации: check_rec
+    # TBA
+
+    # Жилая недвижимость: textbox_count_home
+    land_number = data.get('family').get('familyQuality').get('cntLand')
+
+    # Кол-во трудоустроенных членов семьи: textbox_worker_fam
+    emp_number = data.get('family').get('familyQuality').get('cntEmp')
+
+    # Получатели социальных выплат: textbox_count_cots_income
+
+    # Риски: textbox_risks
+
+    # textbox_risks_1
+
+    # textbox_risks_2
+
+    # textbox_risks_3
+
+    # textbox_risks_4
+
+    # Член многодетной семьи: numericinput_have_many_ch
+
+    # Дети до 18 лет: numericinput_ch_eightn
+
+    # Наемные работники: numericinput_naemniki
+
+    # Многодетные семьи: numericinput_count_ch_large
+
+    # Получатель пособий: numericinput_akimat_give
+
+    pass
+
+
 def main():
     load_dotenv()
 
-    # start_time = datetime.datetime.now().strftime('%Y-%m-%d')
-    #
-    # user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
-    # base_url = os.getenv('URL')
-    #
-    # try:
-    #     auth_data = auth(user=user, base_url=base_url)
-    # except (TimeoutError, httpx.ConnectTimeout) as e:
-    #     print('Отсутствует подключение к VPN')
-    #     return
-    #
-    # user.token = auth_data['accessToken']
-    # user.user_id = str(auth_data['user']['userId'])
-    #
+    start_time = datetime.datetime.now().strftime('%Y-%m-%d')
+
+    user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
+    base_url = os.getenv('URL')
+
+    try:
+        auth_data = auth(user=user, base_url=base_url)
+    except (TimeoutError, httpx.ConnectTimeout) as e:
+        print('No VPN connection...')
+        return
+
+    user.token = auth_data['accessToken']
+    user.user_id = str(auth_data['user']['userId'])
+
     # person_list_file = get_excel_file_path()
     # if not person_list_file:
     #     excel_data = get_person_list(user=user, base_url=base_url)
