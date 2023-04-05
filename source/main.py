@@ -176,8 +176,8 @@ class AsyncTest:
         self.pbar.update(1)
 
     async def run(self):
-        async_client = httpx.AsyncClient(headers=self.headers, timeout=None)
-        async with async_client as client:
+        client = httpx.AsyncClient(headers=self.headers, timeout=None)
+        async with client:
             tasks = [self.get_family_data(client, iin) for iin in self.iins]
             await asyncio.gather(*tasks)
         self.pbar.close()
