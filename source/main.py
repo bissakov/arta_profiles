@@ -20,6 +20,21 @@ class User:
     user_id: str = None
 
 
+@dataclass
+class Family:
+    member_count: int = None
+    child_count: int = None
+    family_level: str = None
+    address: str = None
+    salary: int = None
+    social_payment: int = None
+    pc_income: int = None
+    total_income: int = None
+    income: str = None
+    land_number: int = None
+    emp_number: int = None
+
+
 def get_headers() -> Dict:
     return {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
@@ -92,43 +107,41 @@ def test(user, base_url, iin):
         member_full_name = family_member.get('fullName')
         print(f'textbox_family_{i}: {member_full_name}')
 
-    # Кол-во человек: numericinput_number_of_family
-    member_number = data.get('family').get('familyQuality').get('cntMem')
+    # ✅✅✅ Кол-во человек: numericinput_number_of_family ✅✅✅
+    member_count = data.get('family').get('familyQuality').get('cntMem')
 
-    # Кол-во детей: numericinput_number_of_child
-    child_number = data.get('family').get('familyQuality').get('cntChild')
+    # ✅✅✅ Кол-во детей: numericinput_number_of_child ✅✅✅
+    child_count = data.get('family').get('familyQuality').get('cntChild')
 
-    # Уровень семьи: textbox_level_fam
+    # ✅✅✅ Уровень семьи: textbox_level_fam ✅✅✅
     family_level = data.get('family').get('familyQuality').get('tzhsDictionary').get('nameRu')
 
-    # Адрес: textbox_address
+    # ✅✅✅ Адрес: textbox_address ✅✅✅
     address = data.get('addressRu')
 
-    # Зарплата: numericinput_salary ?????
+    # ❓❓❓ Зарплата: numericinput_salary TODO
     salary = data.get('family').get('familyQuality').get('incomeAsp')
 
-    # Социальные выплаты: numericinput_cots_vyplaty ?????
+    # ❓❓❓ Социальные выплаты: numericinput_cots_vyplaty TODO
     social_payment = data.get('family').get('familyQuality').get('incomeCbd')
 
-    # Среднедушевой доход: numericinput_cots_income
+    # ❓❓❓ Среднедушевой доход: numericinput_cots_income TODO
     pc_income = data.get('family').get('familyQuality').get('sdd')
 
-    # Совокупный доход для АСП: numericinput_income_ASP
-    # TBA
+    # ❓❓❓ Совокупный доход для АСП: numericinput_income_ASP TODO
 
-    # Среднедушевой доход для АСП: numericinput_mid_income_ASP ?????
+    # ❓❓❓ Среднедушевой доход для АСП: numericinput_mid_income_ASP TODO
     total_income = data.get('family').get('familyQuality').get('sddAsp')
 
-    # Доход: textbox_income
+    # ❓❓❓ Доход: textbox_income TODO
     income = data.get('family').get('familyQuality').get('familyPm').get('nameRu')
 
-    # Рекомендации: check_rec
-    # TBA
+    # ❓❓❓ Рекомендации: check_rec TODO
 
-    # Жилая недвижимость: textbox_count_home
+    # ✅✅✅ Жилая недвижимость: textbox_count_home ✅✅✅
     land_number = data.get('family').get('familyQuality').get('cntLand')
 
-    # Кол-во трудоустроенных членов семьи: textbox_worker_fam
+    # ✅✅✅ Кол-во трудоустроенных членов семьи: textbox_worker_fam ✅✅✅
     emp_number = data.get('family').get('familyQuality').get('cntEmp')
 
     # Получатели социальных выплат: textbox_count_cots_income
@@ -153,7 +166,19 @@ def test(user, base_url, iin):
 
     # Получатель пособий: numericinput_akimat_give
 
-    pass
+    family = Family(
+        member_count=member_count,
+        child_count=child_count,
+        family_level=family_level,
+        address=address,
+        salary=salary,
+        social_payment=social_payment,
+        pc_income=pc_income,
+        total_income=total_income,
+        income=income,
+        land_number=land_number,
+        emp_number=emp_number,
+    )
 
 
 def timer(func):
