@@ -19,6 +19,10 @@ class User:
     token: str = None
     user_id: str = None
 
+    def __post_init__(self):
+        if self.token:
+            self.token = f'Bearer {self.token}'
+
 
 @dataclass
 class Family:
@@ -193,33 +197,35 @@ def timer(func):
 
 
 class AsyncTest:
-    def __init__(self, user, base_url, iins):
+    def __init__(self, base_url: str, token: str, iins: List[int], pbar: tqdm = None):
         self.base_url = base_url
         self.iins = iins[:100]
-        self.results = []
-        self.errored = []
+        # self.results = []
+        # self.errored = []
         self.headers = get_headers()
-        self.headers['Authorization'] = f'Bearer {user.token}'
+        self.headers['Authorization'] = token
         self.headers['Content-Type'] = 'application/json'
-        self.pbar = tqdm(total=len(self.iins), colour='green')
+        self.pbar = pbar
 
     async def get_family_data(self, client: httpx.AsyncClient, iin: int):
         payload = {'iin': iin}
         _ = await client.post(f'{self.base_url}/api/card/familyInfo', json=payload)
-        self.pbar.update(1)
+        if self.pbar:
+            self.pbar.update(1)
 
     async def run(self):
         client = httpx.AsyncClient(headers=self.headers, timeout=None)
         async with client:
             tasks = [self.get_family_data(client, iin) for iin in self.iins]
             await asyncio.gather(*tasks)
-        self.pbar.close()
 
 
 @timer
-def async_test(user: User, base_url: str, iins: list):
-    async_obj = AsyncTest(user=user, base_url=base_url, iins=iins)
-    asyncio.run(async_obj.run())
+def async_test(base_url: str, user: User, iins: list):
+    token = f'Bearer {user.token}'
+    with tqdm(total=len(iins), colour='green') as pbar:
+        async_obj = AsyncTest(base_url=base_url, token=token, iins=iins, pbar=pbar)
+        asyncio.run(async_obj.run())
 
 
 def main():
