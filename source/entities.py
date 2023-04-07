@@ -49,7 +49,7 @@ class SocialStatus:
                 setattr(self, key, getattr(self, key) + 1)
 
 
-class Needs:
+class Recommendations:
     need_edu: bool = False
     need_emp: bool = False
     need_med: bool = False
@@ -70,7 +70,7 @@ class Family:
     per_capita_income_asp: int = 0
     total_income_asp: int = 0
     income: str = None
-    needs: Needs = Needs()
+    needs: Recommendations = Recommendations()
     land_number: int = 0
     emp_number: int = 0
     soc_pay_recipient_count: int = 0
