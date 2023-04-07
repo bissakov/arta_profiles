@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 import os
 import warnings
 from typing import Dict, List
@@ -8,7 +7,7 @@ import httpx
 import pandas as pd
 from dotenv import load_dotenv
 from tqdm.auto import tqdm
-from entities import User, Family
+from entities import User
 from utils import timer, get_headers
 
 

@@ -1,10 +1,9 @@
 import os
+from typing import Dict
 import httpx
 from dotenv import load_dotenv
-
 from entities import User, Family, Member, Risks, SocialStatus
 from utils import get_headers
-from typing import Dict
 
 
 def get_risks(risk_detail: str) -> Risks:
@@ -120,4 +119,15 @@ def parse(base_url: str, iin: int, token: str):
     # Многодетные семьи: numericinput_count_ch_large
 
     # Получатель пособий: numericinput_akimat_give
+
+
+
+if __name__ == '__main__':
+    load_dotenv()
+
+    _user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
+    _base_url = os.getenv('URL')
+    parse(base_url=_base_url, iin=861220450614, token='eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJVU0VSMjE3IiwiaWF0IjoxNjgwODU2NTgyLCJleHAiOjE2ODA4NTgzODJ9.HPGuRa9mJJwIoHTHHrpvBJPoP2Tzj17TZ2s4A11ydZGMRFYTHXF-zhwkaMCpMWJyaU-Gzj-LlDjirpxqizbzfg')
+
+    # print(get_risks(riskDetail='INNNOSN'))
 
