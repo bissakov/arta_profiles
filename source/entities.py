@@ -71,8 +71,8 @@ class Family:
     total_income_asp: int = 0
     income: str = None
     recommendations: Recommendations = Recommendations()
-    land_number: int = 0
-    emp_number: int = 0
+    land_cnt: int = 0
+    emp_cnt: int = 0
     soc_pay_recipient_cnt: int = 0
     risks: Risks = Risks()
     social_status: SocialStatus = SocialStatus()
