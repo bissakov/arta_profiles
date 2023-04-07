@@ -51,11 +51,11 @@ class SocialStatus:
 
 @dataclass()
 class Recommendations:
-    need_edu: bool = False
-    need_emp: bool = False
-    need_med: bool = False
-    need_nedv: bool = False
     need_asp: bool = True
+    need_edu: bool = False
+    need_med: bool = False
+    need_emp: bool = False
+    need_nedv: bool = False
 
 
 @dataclass
