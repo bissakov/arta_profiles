@@ -60,8 +60,8 @@ class Recommendations:
 @dataclass
 class Family:
     members: List[Member] = None
-    member_count: int = 0
-    child_count: int = 0
+    member_cnt: int = 0
+    child_cnt: int = 0
     family_level: str = None
     address: str = None
     salary: int = 0
@@ -73,7 +73,7 @@ class Family:
     needs: Recommendations = Recommendations()
     land_number: int = 0
     emp_number: int = 0
-    soc_pay_recipient_count: int = 0
+    soc_pay_recipient_cnt: int = 0
     risks: Risks = Risks()
     social_status: SocialStatus = SocialStatus()
 
