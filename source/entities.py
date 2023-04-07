@@ -49,20 +49,32 @@ class SocialStatus:
                 setattr(self, key, getattr(self, key) + 1)
 
 
+class Needs:
+    need_edu: bool = False
+    need_emp: bool = False
+    need_med: bool = False
+    need_nedv: bool = False
+    need_asp: bool = True
+
+
 @dataclass
 class Family:
     members: List[Member] = None
-    member_count: int = None
-    child_count: int = None
+    member_count: int = 0
+    child_count: int = 0
     family_level: str = None
     address: str = None
-    salary: int = None
-    social_payment: int = None
-    pc_income: int = None
-    total_income: int = None
+    salary: int = 0
+    social_payment: int = 0
+    per_capita_income: int = 0
+    per_capita_income_asp: int = 0
+    total_income_asp: int = 0
     income: str = None
-    land_number: int = None
-    emp_number: int = None
+    needs: Needs = Needs()
+    land_number: int = 0
+    emp_number: int = 0
+    soc_pay_recipient_count: int = 0
+    risks: Risks = Risks()
     social_status: SocialStatus = SocialStatus()
 
     def __post_init__(self):
