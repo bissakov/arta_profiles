@@ -1,5 +1,5 @@
 import time
-from typing import Dict
+from typing import Dict, Any, Callable
 
 
 def get_headers() -> Dict:
@@ -15,20 +15,19 @@ def get_headers() -> Dict:
     }
 
 
-def timer(func):
-
+def timer(func: Callable[..., Any]) -> Callable[..., Any]:
     """A decorator function that measures the time it takes for another function to execute.
     Args:
         func (function): The function to be timed.
     Returns:
         function: A wrapper function that measures the elapsed time.
     """
-
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = time.perf_counter()
-        func(*args, **kwargs)
+        result = func(*args, **kwargs)
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
-        print('Elapsed time: {:.4f} seconds'.format(elapsed_time))
+        print(f'Elapsed time: {elapsed_time:.4f} seconds')
+        return result
 
     return wrapper
