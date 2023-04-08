@@ -49,7 +49,7 @@ class SocialStatus:
                 setattr(self, key, getattr(self, key) + 1)
 
 
-@dataclass()
+@dataclass
 class Recommendations:
     need_asp: bool = True
     need_edu: bool = False
