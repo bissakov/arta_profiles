@@ -68,8 +68,8 @@ class Family:
     salary: int = 0
     social_payment: int = 0
     per_capita_income: int = 0
-    per_capita_income_asp: int = 0
     total_income_asp: int = 0
+    per_capita_income_asp: int = 0
     income: str = None
     recommendations: Recommendations = Recommendations()
     land_cnt: int = 0
