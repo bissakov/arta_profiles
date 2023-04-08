@@ -105,7 +105,7 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str):
 
 
 @timer
-def main():
+def get_family_data():
     load_dotenv()
 
     _iin = sys.argv[1] if len(sys.argv) > 1 else '820915451026'
@@ -135,7 +135,7 @@ def main():
 
 
 if __name__ == '__main__':
-    data = main()
+    data = get_family_data()
     if data:
-        rich.print(asdict(main()))
+        rich.print(asdict(get_family_data()))
     pass
