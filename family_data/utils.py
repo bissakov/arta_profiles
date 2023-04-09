@@ -16,6 +16,18 @@ def get_headers() -> Dict[str, str]:
     }
 
 
+def get_risk_dict() -> Dict[str, Dict[str, str]]:
+    return {
+        'I': {'key': 'income', 'value': 'Уровень дохода ниже ЧБ'},
+        'C': {'key': 'credit', 'value': 'Семья имеет задолженность по кредиту больше 90 дней'},
+        'M': {'key': 'medical_attachment', 'value': 'Член семьи не имеет прикрепление к медицинской организации'},
+        'D': {'key': 'dispensary', 'value': 'Член семьи состоит на диспансерном учете'},
+        'O': {'key': 'health_insurance', 'value': 'Член семьи не имеет прикрепление к медицинской организации'},
+        'S': {'key': 'preschool', 'value': 'Дети не посещают дошкольные организации'},
+        'E': {'key': 'school', 'value': 'Дети не посещают школы'}
+    }
+
+
 def get_social_status_dict() -> Dict[str, int]:
     return {
         'Пенсионеры': 0,
