@@ -117,15 +117,15 @@ def get_family_data(iin: str or int) -> Family or None:
 
     with httpx.Client(timeout=None) as _client:
         try:
-            auth_date = get_token(user=_user, client=_client, base_url=_base_url)
+            auth_data = get_token(user=_user, client=_client, base_url=_base_url)
         except httpx.ConnectTimeout:
             print('No VPN connection')
             return
         except httpx.HTTPError as e:
             sleep(5)
-            auth_date = get_token(user=_user, client=_client, base_url=_base_url)
-        _user.token = auth_date['accessToken']
-        _user.user_id = str(auth_date['user']['userId'])
+            auth_data = get_token(user=_user, client=_client, base_url=_base_url)
+        _user.token = auth_data['accessToken']
+        _user.user_id = str(auth_data['user']['userId'])
 
         _client.headers = get_headers()
         _client.headers['Authorization'] = f'Bearer {_user.token}'
