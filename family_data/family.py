@@ -121,7 +121,7 @@ def get_family_data(iin: str or int) -> Family or None:
         except httpx.ConnectTimeout:
             print('No VPN connection')
             return
-        except httpx.HTTPError as e:
+        except httpx.HTTPError:
             sleep(5)
             auth_data = get_token(user=_user, client=_client, base_url=_base_url)
         _user.token = auth_data['accessToken']
