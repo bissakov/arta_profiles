@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import List, Dict
 from family_data.utils import get_social_status_dict
 
@@ -35,6 +35,11 @@ class Recommendations:
     need_med: bool = False
     need_emp: bool = False
     need_nedv: bool = False
+
+    def to_dict(self) -> Dict[str, bool]:
+        return {recommendation.name: getattr(self, recommendation.name)
+                for recommendation in fields(self)
+                if getattr(self, recommendation.name)}
 
 
 @dataclass
