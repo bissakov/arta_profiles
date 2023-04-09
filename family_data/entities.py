@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields, field
+from dataclasses import dataclass, field
 from typing import List, Dict
 from family_data.utils import get_social_status_dict
 
@@ -57,5 +57,5 @@ class Family:
     risks: Risks = Risks()
     social_status: Dict[str, int] = field(default_factory=get_social_status_dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.members = []
