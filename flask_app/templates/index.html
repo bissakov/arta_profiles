@@ -1,20 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My App</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+  <title>My App</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <form method="POST" action="">
-        <label for="data">Введите ИИН:</label>
-        <input type="text" name="data" id="data" value="{{ data }}">
-        <input type="submit" value="Submit">
-    </form>
+<form method="POST" action="">
+  <label for="data">Введите ИИН:</label>
+  <input type="text" name="data" id="data" value="{{ data }}">
+  <input type="submit" value="Submit">
+</form>
 
-    {% if result %}
-    <p>{{ result }}</p>
-    {% endif %}
+{% if family %}
+<div class="family-portrait">
+  <div class="family">
+    <div class="family-header">Состав семьи:</div>
+    {% for fullName in family['members'] %}
+    <div class="member">{{ fullName }}</div>
+    {% endfor %}
+  </div>
+  <div class="general-info">
+    <div class="general-info-header">Общие сведения:</div>
+    <div class="general-info-element">{{ family['member_cnt'] }}</div>
+    <div class="general-info-element">{{ family['child_cnt'] }}</div>
+    <div class="general-info-element">{{ family['family_level'] }}</div>
+    <div class="general-info-element">{{ family['address'] }}</div>
+  </div>
+  <div class="income">
+    <div class="income-info-header">Общие сведения:</div>
+    <div class="income-info-element">{{ family['salary'] }}</div>
+    <div class="income-info-element">{{ family['social_payment'] }}</div>
+    <div class="income-info-element">{{ family['per_capita_income'] }}</div>
+    <div class="income-info-element">{{ family['total_income_asp'] }}</div>
+    <div class="income-info-element">{{ family['per_capita_income_asp'] }}</div>
+    <div class="income-info-element">{{ family['income'] }}</div>
+  </div>
+  <div class="recInfo">
+    <div class="recInfoHeader">Рекомендации:</div>
+    {% for key, value in family['recommendations'].items() %}
+    <div class="recInfoElement">{{ value }}</div>
+    {% endfor %}
+  </div>
+  <div class="assets">
+    <div class="assets-header">Общие сведения:</div>
+    <div class="assetsInfoElement">{{ family['total_assets'] }}</div>
+    <div class="assetsInfoElement">{{ family['total_liabilities'] }}</div>
+    <div class="assetsInfoElement">{{ family['total_assets_liabilities'] }}</div>
+  </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</div>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
