@@ -2,7 +2,7 @@ import time
 from typing import Dict, Any, Callable
 
 
-def get_headers() -> Dict:
+def get_headers() -> Dict[str, str]:
     return {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
         'Accept': 'application/json, text/plain, */*',
@@ -16,7 +16,7 @@ def get_headers() -> Dict:
     }
 
 
-def get_social_status_dict():
+def get_social_status_dict() -> Dict[str, int]:
     return {
         'Пенсионеры': 0,
         'Участники и инвалиды ВОВ': 0,
