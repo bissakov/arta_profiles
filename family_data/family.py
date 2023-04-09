@@ -5,9 +5,8 @@ from typing import Dict
 import httpx
 import rich
 from dotenv import load_dotenv
-from entities import User, Family, Member, Risks, SocialStatus
-from utils import get_headers, timer
-import sys
+from family_data.entities import User, Family, Member, Risks, SocialStatus
+from family_data.utils import get_headers, timer
 
 
 def get_token(client: httpx.Client, user: User, base_url: str) -> Dict:
