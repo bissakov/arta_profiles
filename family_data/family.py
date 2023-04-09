@@ -111,28 +111,27 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
 @timer
 def get_family_data(iin: str or int) -> Family or None:
     dotenv.load_dotenv()
+    user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
+    base_url = os.getenv('URL')
 
-    _user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
-    _base_url = os.getenv('URL')
-
-    with httpx.Client(timeout=None) as _client:
+    with httpx.Client(timeout=None) as client:
         try:
-            auth_data = get_token(user=_user, client=_client, base_url=_base_url)
+            auth_data = get_token(user=user, client=client, base_url=base_url)
         except httpx.ConnectTimeout:
             print('No VPN connection')
             return
         except httpx.HTTPError:
             sleep(5)
-            auth_data = get_token(user=_user, client=_client, base_url=_base_url)
-        _user.token = auth_data['accessToken']
-        _user.user_id = str(auth_data['user']['userId'])
+            auth_data = get_token(user=user, client=client, base_url=base_url)
+        user.token = auth_data['accessToken']
+        user.user_id = str(auth_data['user']['userId'])
 
-        _client.headers = get_headers()
-        _client.headers['Authorization'] = f'Bearer {_user.token}'
+        client.headers = get_headers()
+        client.headers['Authorization'] = f'Bearer {user.token}'
 
-        _family = get_family(client=_client, base_url=_base_url, iin=iin)
+        family = get_family(client=client, base_url=base_url, iin=iin)
 
-    return _family
+    return family
 
 
 if __name__ == '__main__':
