@@ -2,7 +2,7 @@ import asyncio
 import os
 from dataclasses import asdict
 from time import sleep
-from typing import Dict
+from typing import List, Dict
 import httpx
 import rich
 from dotenv import load_dotenv
@@ -38,11 +38,11 @@ def get_risks(risk_detail: str) -> Risks:
     return risks
 
 
-def get_member_data(family_data: Dict):
+def get_member_data(family_data: Dict) -> List[Member]:
     return [Member(iin=member['iin'], full_name=member['fullName']) for member in family_data['familyMemberList']]
 
 
-async def get_person_details(family: Family, async_client: httpx.AsyncClient, base_url: str):
+async def get_person_details(family: Family, async_client: httpx.AsyncClient, base_url: str) -> List[Dict]:
     results = []
     api_url = f'{base_url}/api/card/getPersonDetailsDTOByIin'
     if len(family.members) == 1:
@@ -56,7 +56,7 @@ async def get_person_details(family: Family, async_client: httpx.AsyncClient, ba
     return results
 
 
-async def update_social_status(family: Family, client: httpx.Client, base_url: str):
+async def update_social_status(family: Family, client: httpx.Client, base_url: str) -> None:
     async with httpx.AsyncClient(headers=client.headers, timeout=None) as async_client:
         person_details = await get_person_details(async_client=async_client, family=family, base_url=base_url)
 
@@ -67,12 +67,12 @@ async def update_social_status(family: Family, client: httpx.Client, base_url: s
             social_status[status_name] += 1
 
 
-def get_data(client: httpx.Client, api_url: str, iin: str or int):
+def get_data(client: httpx.Client, api_url: str, iin: str or int) -> Dict:
     response = client.post(url=api_url, json={'iin': iin})
     return response.json()
 
 
-def get_family(client: httpx.Client, base_url: str, iin: int or str):
+def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
     family_data = get_data(client=client, api_url=f'{base_url}/api/card/familyInfo', iin=iin)
 
     family = Family()
@@ -109,7 +109,7 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str):
 
 
 @timer
-def get_family_data(iin: str or int):
+def get_family_data(iin: str or int) -> Family or None:
     load_dotenv()
 
     _user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
