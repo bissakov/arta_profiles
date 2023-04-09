@@ -49,7 +49,7 @@ class Recommendations:
 
 @dataclass
 class Family:
-    members: List[Member] = None
+    members: List[Member] = field(default_factory=list)
     member_cnt: int = 0
     child_cnt: int = 0
     family_level: str = None
@@ -66,9 +66,6 @@ class Family:
     soc_pay_recipient_cnt: int = 0
     risks: Risks = Risks()
     social_status: Dict[str, int] = field(default_factory=get_social_status_dict)
-
-    def __post_init__(self) -> None:
-        self.members = []
 
     def to_dict(self) -> Dict:
         return {
