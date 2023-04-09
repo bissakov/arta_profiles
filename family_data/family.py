@@ -1,3 +1,4 @@
+import asyncio
 import os
 from dataclasses import asdict
 from time import sleep
@@ -5,7 +6,7 @@ from typing import Dict
 import httpx
 import rich
 from dotenv import load_dotenv
-from family_data.entities import User, Family, Member, Risks, SocialStatus
+from family_data.entities import User, Family, Member, Risks
 from family_data.utils import get_headers, timer
 
 
@@ -49,16 +50,29 @@ def get_member_data(family_data: Dict):
     return [Member(iin=member['iin'], full_name=member['fullName']) for member in family_data['familyMemberList']]
 
 
-def get_social_status(family: Family, client: httpx.Client, base_url: str):
-    social_status = SocialStatus()
-    for member in family.members:
-        member_iin = member.iin
-        person_data = get_data(client=client, api_url=f'{base_url}/api/card/getPersonDetailsDTOByIin', iin=member_iin)
-        for person_detail in person_data['personSourceList']:
-            status_name = person_detail['status']['nameRu']
-            if status_name in social_status.get_names():
-                social_status.update(status_name=status_name)
-    return social_status
+async def get_person_details(family: Family, async_client: httpx.AsyncClient, base_url: str):
+    results = []
+    api_url = f'{base_url}/api/card/getPersonDetailsDTOByIin'
+    if len(family.members) == 1:
+        async with async_client.post(url=api_url, json={'iin': family.members[0]}) as response:
+            results.append(response.json())
+    else:
+        tasks = [async_client.post(url=api_url, json={'iin': member.iin}) for member in family.members]
+        responses = await asyncio.gather(*tasks)
+        for response in responses:
+            results.append(response.json())
+    return results
+
+
+async def update_social_status(family: Family, client: httpx.Client, base_url: str):
+    async with httpx.AsyncClient(headers=client.headers, timeout=None) as async_client:
+        person_details = await get_person_details(async_client=async_client, family=family, base_url=base_url)
+
+    social_status = family.social_status
+    for person_detail in person_details:
+        for person_source in person_detail['personSourceList']:
+            status_name = person_source['status']['nameRu']
+            social_status[status_name] += 1
 
 
 def get_data(client: httpx.Client, api_url: str, iin: str or int):
@@ -72,7 +86,7 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str):
     family = Family()
 
     family.members = get_member_data(family_data=family_data)
-    family.social_status = get_social_status(family=family, client=client, base_url=base_url)
+    asyncio.run(update_social_status(family=family, client=client, base_url=base_url))
 
     family_quality = family_data['family']['familyQuality']
 
