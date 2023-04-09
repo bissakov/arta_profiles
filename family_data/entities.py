@@ -27,6 +27,11 @@ class Risks:
     preschool: str = None
     school: str = None
 
+    def to_dict(self):
+        return {risk.name: getattr(self, risk.name)
+                for risk in fields(self)
+                if getattr(self, risk.name)}
+
 
 @dataclass
 class Recommendations:
@@ -82,6 +87,6 @@ class Family:
             'land_cnt': self.land_cnt,
             'emp_cnt': self.emp_cnt,
             'soc_pay_recipient_cnt': self.soc_pay_recipient_cnt,
-            'risks': self.risks,
+            'risks': self.risks.to_dict(),
             'social_status': {key: value for key, value in self.social_status.items() if value > 0},
         }
