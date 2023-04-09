@@ -16,6 +16,9 @@ class Member:
     iin: str
     full_name: str
 
+    def __post_init__(self):
+        self.full_name = ' '.join([name.capitalize() for name in self.full_name.split(' ')])
+
 
 @dataclass
 class Risks:
