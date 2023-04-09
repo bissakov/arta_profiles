@@ -135,7 +135,10 @@ def get_family_data(iin: str or int) -> Family or None:
 
 
 if __name__ == '__main__':
-    data = get_family_data(iin=920801499021)
-    if data:
-        rich.print(asdict(data))
+    data: Family = get_family_data(iin=920801499021)
+
+    import json
+    with open('data.json', 'w', encoding='utf-8') as f:
+        json.dump(data.to_dict(), f, ensure_ascii=False, indent=4)
+
     pass
