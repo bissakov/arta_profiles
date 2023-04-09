@@ -13,7 +13,6 @@ def get_token(client: httpx.Client, user: User, base_url: str) -> Dict:
     url = f'{base_url}/auth/login'
 
     headers = get_headers()
-    headers['Content-Type'] = 'application/json'
 
     response = client.post(
         url=url,
@@ -124,7 +123,6 @@ def get_family_data(iin: str or int):
 
         _client.headers = get_headers()
         _client.headers['Authorization'] = f'Bearer {_user.token}'
-        _client.headers['Content-Type'] = 'application/json'
 
         _family = get_family(client=_client, base_url=_base_url, iin=iin)
 
