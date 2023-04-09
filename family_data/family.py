@@ -7,7 +7,7 @@ import httpx
 import rich
 from dotenv import load_dotenv
 from family_data.entities import User, Family, Member, Risks
-from family_data.utils import get_headers, timer
+from family_data.utils import get_headers, get_risk_dict, timer
 
 
 def get_token(client: httpx.Client, user: User, base_url: str) -> Dict:
@@ -26,15 +26,7 @@ def get_token(client: httpx.Client, user: User, base_url: str) -> Dict:
 
 
 def get_risks(risk_detail: str) -> Risks:
-    risk_dict = {
-        'I': {'key': 'income', 'value': 'Уровень дохода ниже ЧБ'},
-        'C': {'key': 'credit', 'value': 'Семья имеет задолженность по кредиту больше 90 дней'},
-        'M': {'key': 'medical_attachment', 'value': 'Член семьи не имеет прикрепление к медицинской организации'},
-        'D': {'key': 'dispensary', 'value': 'Член семьи состоит на диспансерном учете'},
-        'O': {'key': 'health_insurance', 'value': 'Член семьи не имеет прикрепление к медицинской организации'},
-        'S': {'key': 'preschool', 'value': 'Дети не посещают дошкольные организации'},
-        'E': {'key': 'school', 'value': 'Дети не посещают школы'}
-    }
+    risk_dict = get_risk_dict()
 
     risks = Risks()
     for detail in risk_detail:
@@ -144,7 +136,7 @@ def get_family_data(iin: str or int):
 
 
 if __name__ == '__main__':
-    data = get_family_data()
+    data = get_family_data(iin=920801499021)
     if data:
-        rich.print(asdict(get_family_data()))
+        rich.print(asdict(data))
     pass
