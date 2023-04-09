@@ -11,6 +11,10 @@
         <input type="submit" value="Submit">
     </form>
 
+    {% if result %}
+    <p>{{ result }}</p>
+    {% endif %}
+
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

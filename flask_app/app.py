@@ -5,16 +5,15 @@ from family_data.family import get_family_data
 app = Flask(__name__)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def home():
-    return render_template('index.html')
-
-
-@app.route('/submit', methods=['POST'])
-def submit():
-    iin = request.form['data']
-    result = get_family_data(iin)
-    return render_template('result.html', result=result)
+    result = None
+    data = request.form.get('data', '')
+    if request.method == 'POST':
+        iin = request.form['data']
+        # result = get_family_data(iin)
+        result = iin
+    return render_template('index.html', data=data, result=result)
 
 
 if __name__ == '__main__':
