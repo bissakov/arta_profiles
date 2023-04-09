@@ -105,10 +105,8 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str):
 
 
 @timer
-def get_family_data():
+def get_family_data(iin: str or int):
     load_dotenv()
-
-    _iin = sys.argv[1] if len(sys.argv) > 1 else '820915451026'
 
     _user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
     _base_url = os.getenv('URL')
@@ -129,7 +127,7 @@ def get_family_data():
         _client.headers['Authorization'] = f'Bearer {_user.token}'
         _client.headers['Content-Type'] = 'application/json'
 
-        _family = get_family(client=_client, base_url=_base_url, iin=_iin)
+        _family = get_family(client=_client, base_url=_base_url, iin=iin)
 
     return _family
 
