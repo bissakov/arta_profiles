@@ -3,9 +3,9 @@ import os
 from dataclasses import asdict
 from time import sleep
 from typing import List, Dict
+import dotenv
 import httpx
 import rich
-from dotenv import load_dotenv
 from family_data.entities import User, Family, Member, Risks
 from family_data.utils import get_headers, get_risk_dict, timer
 
@@ -110,7 +110,7 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
 
 @timer
 def get_family_data(iin: str or int) -> Family or None:
-    load_dotenv()
+    dotenv.load_dotenv()
 
     _user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
     _base_url = os.getenv('URL')
