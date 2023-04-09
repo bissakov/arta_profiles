@@ -64,3 +64,24 @@ class Family:
 
     def __post_init__(self) -> None:
         self.members = []
+
+    def to_dict(self) -> Dict:
+        return {
+            'members': [member.full_name for member in self.members],
+            'member_cnt': self.member_cnt,
+            'child_cnt': self.child_cnt,
+            'family_level': self.family_level,
+            'address': self.address,
+            'salary': self.salary,
+            'social_payment': self.social_payment,
+            'per_capita_income': self.per_capita_income,
+            'total_income_asp': self.total_income_asp,
+            'per_capita_income_asp': self.per_capita_income_asp,
+            'income': self.income,
+            'recommendations': self.recommendations.to_dict(),
+            'land_cnt': self.land_cnt,
+            'emp_cnt': self.emp_cnt,
+            'soc_pay_recipient_cnt': self.soc_pay_recipient_cnt,
+            'risks': self.risks,
+            'social_status': {key: value for key, value in self.social_status.items() if value > 0},
+        }
