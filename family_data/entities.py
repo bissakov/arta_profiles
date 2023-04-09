@@ -1,5 +1,6 @@
-from dataclasses import dataclass, fields
-from typing import List
+from dataclasses import dataclass, fields, field
+from typing import List, Dict
+from family_data.utils import get_social_status_dict
 
 
 @dataclass
@@ -25,28 +26,6 @@ class Risks:
     health_insurance: str = None
     preschool: str = None
     school: str = None
-
-
-@dataclass
-class SocialStatus:
-    member_of_a_large_family_cnt: int = 0
-    children_under_18_cnt: int = 0
-    wage_earner_cnt: int = 0
-    large_families_cnt: int = 0
-    beneficiary_cnt: int = 0
-
-    @staticmethod
-    def get_names():
-        return ['Член многодетной семьи ', 'Дети до 18 лет', 'Наемные работники', 'Многодетные семьи', 'Получатель пособий']
-
-    def get_mappings(self):
-        return {field.name: name for field, name in zip(fields(self), self.get_names())}
-
-    def update(self, status_name):
-        mapping = self.get_mappings()
-        for key, value in mapping.items():
-            if value == status_name:
-                setattr(self, key, getattr(self, key) + 1)
 
 
 @dataclass
@@ -76,7 +55,7 @@ class Family:
     emp_cnt: int = 0
     soc_pay_recipient_cnt: int = 0
     risks: Risks = Risks()
-    social_status: SocialStatus = SocialStatus()
+    social_status: Dict[str, int] = field(default_factory=get_social_status_dict)
 
     def __post_init__(self):
         self.members = []
