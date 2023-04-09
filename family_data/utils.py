@@ -8,6 +8,7 @@ def get_headers() -> Dict:
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
         'DNT': '1',
         'Connection': 'keep-alive',
         'Pragma': 'no-cache',
