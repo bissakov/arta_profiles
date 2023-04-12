@@ -7,7 +7,7 @@ import dotenv
 import httpx
 import rich
 from family_data.entities import User, Family, Member, Risks
-from family_data.utils import get_headers, get_risk_dict, timer, FamilyNotFound
+from family_data.utils import get_headers, get_risk_dict, FamilyNotFound
 
 
 def get_token(client: httpx.Client, user: User, base_url: str) -> Dict:
