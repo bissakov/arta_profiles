@@ -7,7 +7,7 @@ import dotenv
 import httpx
 import rich
 from family_data.entities import User, Family, Member, Risks
-from family_data.utils import get_headers, get_risk_dict, timer
+from family_data.utils import get_headers, get_risk_dict, timer, FamilyNotFound
 
 
 def get_token(client: httpx.Client, user: User, base_url: str) -> Dict:
@@ -72,8 +72,15 @@ def get_data(client: httpx.Client, api_url: str, iin: str or int) -> Dict:
     return response.json()
 
 
+def family_exists(family_data: Dict) -> bool:
+    return bool(family_data['family'])
+
+
 def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
     family_data = get_data(client=client, api_url=f'{base_url}/api/card/familyInfo', iin=iin)
+
+    if not family_exists(family_data=family_data):
+        raise FamilyNotFound(iin=iin)
 
     family = Family()
 
@@ -99,9 +106,9 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
     family.recommendations.need_med = bool(family_quality['needMed'])
     family.recommendations.need_nedv = bool(family_quality['needNedv'])
 
-    family.land_cnt = family_quality['cntLand']
-    family.emp_cnt = family_quality['cntEmp']
-    family.soc_pay_recipient_cnt = family_quality['cntCbd']
+    family.assets.land_cnt = family_quality['cntLand']
+    family.assets.emp_cnt = family_quality['cntEmp']
+    family.assets.soc_pay_recipient_cnt = family_quality['cntCbd']
     risk_detail = family_quality['riskDetail']
     family.risks = get_risks(risk_detail=risk_detail)
 
@@ -121,8 +128,8 @@ def get_family_data(iin: str or int) -> Family or None:
             print('No VPN connection')
             return
         except httpx.HTTPError:
-            sleep(5)
-            auth_data = get_token(user=user, client=client, base_url=base_url)
+            print('Error. Try again later.')
+            return
         user.token = auth_data['accessToken']
         user.user_id = str(auth_data['user']['userId'])
 
@@ -135,7 +142,7 @@ def get_family_data(iin: str or int) -> Family or None:
 
 
 if __name__ == '__main__':
-    data: Family = get_family_data(iin=920801499021)
+    data: Family = get_family_data(iin=5416132165)
 
     import json
     with open('data.json', 'w', encoding='utf-8') as f:
