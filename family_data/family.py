@@ -115,7 +115,7 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
     return family
 
 
-@timer
+# @timer
 def get_family_data(iin: str or int) -> Family or None:
     dotenv.load_dotenv()
     user = User(username=os.getenv('USR'), password=os.getenv('PSW'))

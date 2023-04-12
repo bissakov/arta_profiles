@@ -8,7 +8,6 @@ class FamilyNotFound(Exception):
         self.iin = iin
 
 
-
 def get_headers() -> Dict[str, str]:
     return {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
@@ -85,20 +84,20 @@ def get_social_status_dict() -> Dict[str, int]:
     }
 
 
-def timer(func: Callable[..., Any]) -> Callable[..., Any]:
-    """A decorator function that measures the time it takes for another function to execute.
-    Args:
-        func (function): The function to be timed.
-    Returns:
-        function: A wrapper function that measures the elapsed time.
-    """
-
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        start_time = time.perf_counter()
-        result = func(*args, **kwargs)
-        end_time = time.perf_counter()
-        elapsed_time = end_time - start_time
-        print(f'Elapsed time: {elapsed_time:.4f} seconds')
-        return result
-
-    return wrapper
+# def timer(func: Callable[..., Any]) -> Callable[..., Any]:
+#     """A decorator function that measures the time it takes for another function to execute.
+#     Args:
+#         func (function): The function to be timed.
+#     Returns:
+#         function: A wrapper function that measures the elapsed time.
+#     """
+#
+#     def wrapper(*args: Any, **kwargs: Any) -> Any:
+#         start_time = time.perf_counter()
+#         result = func(*args, **kwargs)
+#         end_time = time.perf_counter()
+#         elapsed_time = end_time - start_time
+#         print(f'Elapsed time: {elapsed_time:.4f} seconds')
+#         return result
+#
+#     return wrapper
