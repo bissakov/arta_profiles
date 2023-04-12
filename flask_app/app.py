@@ -11,15 +11,13 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def home() -> str:
     family = None
-    error_msg = 'sdfkjsdfkldj'
+    error_msg = None
     iin = request.form.get('data', '')
     if request.method == 'POST':
         try:
             family = get_family_data(iin)
         except FamilyNotFound:
             error_msg = 'Неправильный ИИН'
-        # with open(r'D:\Work\python_rpa\arta_profiles\family_data\data.json', 'r', encoding='utf-8') as f:
-        #     family = json.load(f)
     return render_template('index.html', data=iin, family=family.to_dict() if family else None, error=error_msg)
 
 
