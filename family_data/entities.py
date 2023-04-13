@@ -1,6 +1,10 @@
 from dataclasses import dataclass, field, fields
 from typing import List, Dict
-from family_data.utils import get_social_status_dict
+
+try:
+    from family_data.utils import get_social_status_dict
+except (ModuleNotFoundError, ImportError):
+    from utils import get_social_status_dict
 
 
 @dataclass

@@ -6,8 +6,13 @@ from typing import List, Dict
 import dotenv
 import httpx
 import rich
-from family_data.entities import User, Family, Member, Risks
-from family_data.utils import get_headers, get_risk_dict, FamilyNotFound
+
+try:
+    from family_data.entities import User, Family, Member, Risks
+    from family_data.utils import get_headers, get_risk_dict, FamilyNotFound, FamilyNotInList
+except (ModuleNotFoundError, ImportError):
+    from entities import User, Family, Member, Risks
+    from utils import get_headers, get_risk_dict, FamilyNotFound, FamilyNotInList
 
 
 def get_token(client: httpx.Client, user: User, base_url: str) -> Dict:
@@ -76,11 +81,30 @@ def family_exists(family_data: Dict) -> bool:
     return bool(family_data['family'])
 
 
+def is_family_in_list(client: httpx.Client, base_url: str, iin: str) -> bool:
+    url = f'{base_url}/api/workspace/stat/page'
+
+    payload = {
+        'regionId': None,
+        'actionCode': '',
+        'countId': 93,
+        'iin': iin,
+        'page': 1,
+        'size': 1
+    }
+
+    response = client.post(url=url, json=payload)
+
+    return response.json()['total'] > 0
+
+
 def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
     family_data = get_data(client=client, api_url=f'{base_url}/api/card/familyInfo', iin=iin)
 
     if not family_exists(family_data=family_data):
         raise FamilyNotFound(iin=iin)
+    if not is_family_in_list(client=client, base_url=base_url, iin=iin):
+        raise FamilyNotInList(iin=iin)
 
     family = Family()
 
@@ -115,21 +139,13 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
     return family
 
 
-# @timer
 def get_family_data(iin: str or int) -> Family or None:
     dotenv.load_dotenv()
     user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
     base_url = os.getenv('URL')
 
     with httpx.Client(timeout=None) as client:
-        try:
-            auth_data = get_token(user=user, client=client, base_url=base_url)
-        except httpx.ConnectTimeout:
-            print('No VPN connection')
-            return
-        except httpx.HTTPError:
-            print('Error. Try again later.')
-            return
+        auth_data = get_token(user=user, client=client, base_url=base_url)
         user.token = auth_data['accessToken']
         user.user_id = str(auth_data['user']['userId'])
 
@@ -144,8 +160,6 @@ def get_family_data(iin: str or int) -> Family or None:
 if __name__ == '__main__':
     data: Family = get_family_data(iin=5416132165)
 
-    import json
-    with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(data.to_dict(), f, ensure_ascii=False, indent=4)
+    print(data)
 
     pass
