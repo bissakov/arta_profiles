@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, asdict
 from typing import List, Dict
 
 try:
@@ -92,7 +92,7 @@ class Family:
 
     def to_dict(self) -> Dict:
         return {
-            'members': [member.full_name for member in self.members],
+            'members': [asdict(member) for member in self.members],
             'member_cnt': {'name': 'Кол-во человек', 'value': self.member_cnt},
             'child_cnt': {'name': 'Кол-во детей', 'value': self.child_cnt},
             'family_level': {'name': 'Уровень семьи', 'value': self.family_level},
