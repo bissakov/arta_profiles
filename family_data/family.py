@@ -7,6 +7,8 @@ import dotenv
 import httpx
 import rich
 
+import json
+
 try:
     from family_data.entities import User, Family, Member, Risks
     from family_data.utils import get_headers, get_risk_dict, FamilyNotFound, FamilyNotInList
@@ -43,8 +45,12 @@ def get_risks(risk_detail: str) -> Risks:
     return risks
 
 
-def get_member_data(family_data: Dict) -> List[Member]:
-    return [Member(iin=member['iin'], full_name=member['fullName']) for member in family_data['familyMemberList']]
+def get_member_data(family_data: Dict, iin: str) -> List[Member]:
+    member_data = [Member(iin=member['iin'], full_name=member['fullName']) for member in family_data['familyMemberList']]
+    selected_member_info = next((i, member) for i, member in enumerate(member_data) if member.iin == iin)
+    member_data.pop(selected_member_info[0])
+    member_data.insert(0, selected_member_info[1])
+    return member_data
 
 
 async def get_person_details(family: Family, async_client: httpx.AsyncClient, base_url: str) -> List[Dict]:
@@ -108,7 +114,7 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
 
     family = Family()
 
-    family.members = get_member_data(family_data=family_data)
+    family.members = get_member_data(family_data=family_data, iin=iin)
     asyncio.run(update_social_status(family=family, client=client, base_url=base_url))
 
     family_quality = family_data['family']['familyQuality']
@@ -143,6 +149,7 @@ def get_family_data(iin: str or int) -> Family or None:
     dotenv.load_dotenv()
     user = User(username=os.getenv('USR'), password=os.getenv('PSW'))
     base_url = os.getenv('URL')
+    iin = str(iin) if type(iin) == int else iin
 
     with httpx.Client(timeout=None) as client:
         auth_data = get_token(user=user, client=client, base_url=base_url)
@@ -158,8 +165,8 @@ def get_family_data(iin: str or int) -> Family or None:
 
 
 if __name__ == '__main__':
-    data: Family = get_family_data(iin=5416132165)
+    data: Family = get_family_data(iin='941020450882')
 
+    with open('data.json', 'w', encoding='utf-8') as f:
+        json.dump(data.to_dict(), f, ensure_ascii=False, indent=4)
     print(data)
-
-    pass
