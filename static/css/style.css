@@ -30,14 +30,22 @@ html, body {
   flex-wrap: wrap;
 }
 
+.col1 {
+  flex-basis: 40%;
+}
+
 .col2 {
   text-align: right;
+  flex-grow: 1;
 }
 
 .column {
   width: 50%;
 }
 
+.head {
+  font-weight: bold;
+}
 
 .header {
   color: #007bff;
