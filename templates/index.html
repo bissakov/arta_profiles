@@ -21,17 +21,39 @@
 <div class="family-portrait">
   <div class="col-30 info">
     <div class="row header">Состав семьи:</div>
-    {% for fullName in family['members'] %}
-    <div class="row family-member">{{fullName}}</div>
+    {% for member in family['members'] %}
+
+    <div class="row flex-row family-member">
+
+      {% if loop.index == 1 %}
+      <div class="column col1 head">{{member['iin']}}</div>
+      <div class="column col2 head">{{member['full_name']}}</div>
+      {% else %}
+      <div class="column col1">{{member['iin']}}</div>
+      <div class="column col2">{{member['full_name']}}</div>
+      {% endif %}
+    </div>
     {% endfor %}
   </div>
   <div class="col-30">
       <div class="info">
         <div class="row header">Общие сведения:</div>
-        <div class="row general-info-element">{{family['member_cnt']['name']}} {{family['member_cnt']['value']}}</div>
-        <div class="row general-info-element">{{family['child_cnt']['name']}} {{family['child_cnt']['value']}}</div>
-        <div class="row general-info-element">{{family['family_level']['name']}} {{family['family_level']['value']}}</div>
-        <div class="row general-info-element">{{family['address']['name']}} {{family['address']['value']}}</div>
+        <div class="row flex-row general-info-element">
+          <div class="column col1">{{family['member_cnt']['name']}}</div>
+          <div class="column col2">{{family['member_cnt']['value']}}</div>
+        </div>
+        <div class="row flex-row general-info-element">
+          <div class="column col1">{{family['child_cnt']['name']}}</div>
+          <div class="column col2">{{family['child_cnt']['value']}}</div>
+        </div>
+        <div class="row flex-row general-info-element">
+          <div class="column col1">{{family['family_level']['name']}}</div>
+          <div class="column col2">{{family['family_level']['value']}}</div>
+        </div>
+        <div class="row flex-row general-info-element">
+          <div class="column col1">{{family['address']['name']}}</div>
+          <div class="column col2">{{family['address']['value']}}</div>
+        </div>
       </div>
       <div class="info">
         <div class="row header">Активы семьи:</div>
