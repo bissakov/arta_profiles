@@ -1,6 +1,26 @@
 import os
-from typing import Dict, Tuple, Any
+import time
+from typing import Dict, Tuple, Any, Callable
 import dotenv
+
+
+def timer(func: Callable[..., Any]) -> Callable[..., Any]:
+    """A decorator function that measures the time it takes for another function to execute.
+    Args:
+        func (function): The function to be timed.
+    Returns:
+        function: A wrapper function that measures the elapsed time.
+    """
+
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        print(f'Elapsed time: {elapsed_time:.4f} seconds for function {func.__name__}')
+        return result
+
+    return wrapper
 
 
 def get_env_vars() -> Tuple[str, str, str]:
