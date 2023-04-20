@@ -56,14 +56,10 @@ def get_member_data(family_data: Dict, iin: str) -> List[Member]:
 async def get_person_details(family: Family, async_client: httpx.AsyncClient, base_url: str) -> List[Dict]:
     results = []
     api_url = f'{base_url}/api/card/getPersonDetailsDTOByIin'
-    if len(family.members) == 1:
-        async with async_client.post(url=api_url, json={'iin': family.members[0]}) as response:
-            results.append(response.json())
-    else:
-        tasks = [async_client.post(url=api_url, json={'iin': member.iin}) for member in family.members]
-        responses = await asyncio.gather(*tasks)
-        for response in responses:
-            results.append(response.json())
+    tasks = [async_client.post(url=api_url, json={'iin': member.iin}) for member in family.members]
+    responses = await asyncio.gather(*tasks)
+    for response in responses:
+        results.append(response.json())
     return results
 
 
@@ -78,7 +74,7 @@ async def update_social_status(family: Family, client: httpx.Client, base_url: s
             social_status[status_name] += 1
 
 
-def get_data(client: httpx.Client, api_url: str, iin: str or int) -> Dict:
+def get_data(client: httpx.Client, api_url: str, iin: str) -> Dict:
     response = client.post(url=api_url, json={'iin': iin})
     return response.json()
 
@@ -104,13 +100,13 @@ def is_family_in_list(client: httpx.Client, base_url: str, iin: str) -> bool:
     return response.json()['total'] > 0
 
 
-def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
+def get_family(client: httpx.Client, base_url: str, iin: str) -> Family:
     family_data = get_data(client=client, api_url=f'{base_url}/api/card/familyInfo', iin=iin)
 
     if not family_exists(family_data=family_data):
         raise FamilyNotFound(iin=iin)
-    if not is_family_in_list(client=client, base_url=base_url, iin=iin):
-        raise FamilyNotInList(iin=iin)
+    # if not is_family_in_list(client=client, base_url=base_url, iin=iin):
+    #     raise FamilyNotInList(iin=iin)
 
     family = Family()
 
@@ -119,15 +115,15 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
 
     family_quality = family_data['family']['familyQuality']
 
-    family.member_cnt = family_quality['cntMem']
+    family.member_cnt = family_quality.get('cntMem', 0)
     family.child_cnt = family_quality['cntChild']
     family.family_level = family_quality['tzhsDictionary']['nameRu']
     family.address = family_data['addressRu']
 
-    family.salary = family_quality['incomeOop']
-    family.social_payment = family_quality['incomeCbd']
-    family.per_capita_income = family_quality['sdd']
-    family.per_capita_income_asp = family_quality['sddAsp']
+    family.salary = family_quality.get('incomeOop', 0)
+    family.social_payment = family_quality.get('incomeCbd', 0)
+    family.per_capita_income = family_quality.get('sdd', 0)
+    family.per_capita_income_asp = family_quality['sddAsp'] if family_quality['sddAsp'] is not None else 0
     family.total_income_asp = family.per_capita_income_asp * family.member_cnt * 3
     family.income = family_quality['familyPm']['nameRu']
 
@@ -136,7 +132,7 @@ def get_family(client: httpx.Client, base_url: str, iin: int or str) -> Family:
     family.recommendations.need_med = bool(family_quality['needMed'])
     family.recommendations.need_nedv = bool(family_quality['needNedv'])
 
-    family.assets.land_cnt = family_quality['cntLand']
+    family.assets.nedv_cnt = family_quality['cntNedv']
     family.assets.emp_cnt = family_quality['cntEmp']
     family.assets.soc_pay_recipient_cnt = family_quality['cntCbd']
     risk_detail = family_quality['riskDetail']
@@ -165,7 +161,7 @@ def get_family_data(iin: str or int) -> Family or None:
 
 
 if __name__ == '__main__':
-    data: Family = get_family_data(iin='941020450882')
+    data: Family = get_family_data(iin='550326450237')
 
     with open('data.json', 'w', encoding='utf-8') as f:
         json.dump(data.to_dict(), f, ensure_ascii=False, indent=4)

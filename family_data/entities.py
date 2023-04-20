@@ -62,14 +62,13 @@ class Recommendations:
 
 @dataclass
 class Assets:
-    land_cnt: int = 0
+    nedv_cnt: int = 0
     emp_cnt: int = 0
     soc_pay_recipient_cnt: int = 0
 
-    def to_dict(self) -> Dict[str, bool]:
-        return {recommendation.name: getattr(self, recommendation.name)
-                for recommendation in fields(self)
-                if getattr(self, recommendation.name)}
+    def to_dict(self) -> Dict[Dict[str, str or int]]:
+        names = ['Жилая недвижимость', 'Кол-во трудоустроенных членов семьи', 'Получатели социальных выплат']
+        return {{'name': name, 'value': getattr(self, asset.name)} for asset, name in zip(fields(self), names) if getattr(self, asset.name) != 0}
 
 
 @dataclass
@@ -104,9 +103,7 @@ class Family:
             'per_capita_income_asp': {'name': 'Среднедушевой доход АСП', 'value': self.per_capita_income_asp},
             'income': {'name': 'Доход', 'value': self.income},
             'recommendations': self.recommendations.to_dict(),
-            'land_cnt': {'name': 'Жилая недвижимость', 'value': self.assets.land_cnt},
-            'emp_cnt': {'name': 'Кол-во трудоустроенных членов семьи', 'value': self.assets.emp_cnt},
-            'soc_pay_recipient_cnt': {'name': 'Получатели социальных выплат', 'value': self.assets.soc_pay_recipient_cnt},
+            'assets': self.assets.to_dict(),
             'risks': self.risks.to_dict(),
             'social_status': {key: value for key, value in self.social_status.items() if value > 0},
         }
