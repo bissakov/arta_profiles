@@ -1,58 +1,35 @@
 import json
-from dataclasses import asdict
-from datetime import datetime
+from dataclasses import dataclass
+from typing import Dict, Any, List
 
 import bs4
-from selenium import webdriver
-from selenium.webdriver.chrome.webdriver import WebDriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import JavascriptException
 import httpx
-import dotenv
-import os
-from typing import Dict, Any, List, Tuple
 import rich
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.by import By
 
 try:
-    from family_selenium.entities import User, Family, Member, Risks
-    from family_selenium.utils import get_headers, get_risk_dict,\
-        FamilyNotFound, FamilyNotInList, is_valid_iin, WrongIIN
+    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value
+    from family_selenium.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
 except (ModuleNotFoundError, ImportError):
-    from entities import User, Family, Member, Risks
-    from utils import get_headers, get_risk_dict,\
-        FamilyNotFound, FamilyNotInList, is_valid_iin, WrongIIN
+    from utils import get_headers, is_valid_iin, get_env_vars, convert_value
+    from family_selenium.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
+
+
+@dataclass
+class User:
+    username: str
+    password: str
 
 
 def get_token(user: User, base_url: str) -> Dict:
-    url = f'{base_url}/auth/login'
-
-    headers = get_headers()
-
     response = httpx.post(
-        url=url,
+        url=f'{base_url}/auth/login',
         json={'username': user.username, 'password': user.password},
-        headers=headers
+        headers=get_headers()
     )
     response.raise_for_status()
-
     return response.json()
-
-
-def auth(driver: WebDriver) -> None:
-    driver.get('http://10.61.164.228/#/login')
-    driver.implicitly_wait(10)
-
-    username_field, password_field = driver.find_elements(By.TAG_NAME, 'input')
-    submit_button = driver.find_element(By.CSS_SELECTOR, '.px-4')
-
-    username_field.send_keys('USER217')
-    password_field.send_keys('As123456+')
-    submit_button.click()
 
 
 def set_local_storage(driver: WebDriver, storage: Dict) -> None:
@@ -63,14 +40,6 @@ def set_local_storage(driver: WebDriver, storage: Dict) -> None:
     script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
     script += f"localStorage.setItem('userAuth', '{user_auth}');"
     driver.execute_script(script)
-
-
-def get_env_vars() -> Tuple[str, str, str]:
-    dotenv.load_dotenv()
-    base_url, username, password = os.getenv('URL'), os.getenv('USR'), os.getenv('PSW')
-    if not bool(base_url and username and password):
-        raise ValueError('One of the variables or .env file does not exist')
-    return base_url, username, password
 
 
 def get_member_data(iin: str, base_url: str, token: str) -> List[Dict[str, str]]:
@@ -88,19 +57,6 @@ def get_member_data(iin: str, base_url: str, token: str) -> List[Dict[str, str]]
     member_data.pop(selected_member_info[0])
     member_data.insert(0, selected_member_info[1])
     return member_data
-
-
-def convert_value(val: str) -> Any:
-    if next((True for c in val if c.isalpha()), False):
-        return val.strip()
-    val = val.replace(' ', '')
-    try:
-        return int(val)
-    except ValueError:
-        try:
-            return float(val)
-        except ValueError:
-            return val
 
 
 def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
@@ -137,11 +93,6 @@ def get_family_data(iin: str, driver: WebDriver) -> Any:
     auth_data = get_token(user=user, base_url=base_url)
     member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'])
 
-    # options = Options()
-    # options.add_argument('--headless')
-    # options.add_argument('--no-sandbox')
-    # options.add_argument('--disable-dev-shm-usage')
-    # with webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options) as driver:
     driver.get(url=base_url)
     set_local_storage(driver, auth_data)
     driver.get(f'{base_url}/#/family/{iin}')
@@ -156,5 +107,16 @@ def get_family_data(iin: str, driver: WebDriver) -> Any:
 
 
 if __name__ == '__main__':
-    data = get_family_data(iin='444444444444')
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    _driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    with _driver:
+        data = get_family_data(iin='444444444444', driver=_driver)
     rich.print(data)
