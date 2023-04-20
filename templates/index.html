@@ -3,6 +3,7 @@
 <head>
   <title>My App</title>
   <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.css')}}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 
@@ -10,7 +11,7 @@
   <form method="POST" action="">
     <label for="data">Введите ИИН:</label>
     <input type="text" id="data" name="data", value="{{ request.form.get('data', '') }}">
-    <button type="submit" value="Submit">Submit</button>
+    <button type="submit" value="Submit">Запросить</button>
   </form>
   {% if error %}
   <div class="error">{{ error }}</div>
@@ -21,16 +22,16 @@
 <div class="family-portrait">
   <div class="col-30 info">
     <div class="row header">Состав семьи:</div>
-    {% for member in family['members'] %}
+    {% for member in family['Члены семьи'] %}
 
     <div class="row flex-row family-member">
 
       {% if loop.index == 1 %}
-      <div class="column col1 head">{{member['iin']}}</div>
-      <div class="column col2 head">{{member['full_name']}}</div>
+      <div class="column col1 head">{{member['ИИН']}}</div>
+      <div class="column col2 head">{{member['ФИО']}}</div>
       {% else %}
-      <div class="column col1">{{member['iin']}}</div>
-      <div class="column col2">{{member['full_name']}}</div>
+      <div class="column col1">{{member['ИИН']}}</div>
+      <div class="column col2">{{member['ФИО']}}</div>
       {% endif %}
     </div>
     {% endfor %}
@@ -38,6 +39,13 @@
   <div class="col-30">
       <div class="info">
         <div class="row header">Общие сведения:</div>
+<<<<<<< HEAD
+        {% for key, value in family['Общие сведения'].items() %}
+          <div class="row flex-row general-info-element">
+            <div class="column col1">{{key}}</div>
+            <div class="column col2">{{value}}</div>
+          </div>
+=======
         <div class="row flex-row general-info-element">
           <div class="column col1">{{family['member_cnt']['name']}}</div>
           <div class="column col2">{{family['member_cnt']['value']}}</div>
@@ -66,59 +74,67 @@
         <div class="row header">Риски:</div>
         {% for risk in family['risks'] %}
         <div class="row risks-info-element">{{risk}}</div>
+>>>>>>> 280f40eb878eaf4194861b443a2bd7874ae7926b
         {% endfor %}
       </div>
+      {% if family['Активы семьи'] %}
+        <div class="info">
+          <div class="row header">Активы семьи:</div>
+          {% for key, value in family['Активы семьи'].items() %}
+            <div class="row flex-row assets-info-element">
+              <div class="column col1">{{key}}</div>
+              <div class="column col2">{{value}}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if family['Риски'] %}
+        <div class="info">
+          <div class="row header">Риски:</div>
+          {% for risk in family['Риски'] %}
+            <div class="row risks-info-element">{{risk}}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
   </div>
   <div class="col-40">
-    <div class="info">
-      <div class="row header">Доход за квартал:</div>
-
-      <div class="row flex-row income-info-element">
-        <div class="column col1">{{family['salary']['name']}}</div>
-        <div class="column col2 num">{{family['salary']['value']}}</div>
+    {% if family['Доход за квартал'] %}
+      <div class="info">
+        <div class="row header">Доход за квартал:</div>
+        {% for key, value in family['Доход за квартал'].items() %}
+          <div class="row flex-row income-info-element">
+            <div class="column col1">{{key}}</div>
+            <div class="column col2 num">{{value}}</div>
+          </div>
+        {% endfor %}
       </div>
+    {% endif %}
 
-      <div class="row flex-row income-info-element">
-        <div class="column col1">{{family['social_payment']['name']}}</div>
-        <div class="column col2 num">{{family['social_payment']['value']}}</div>
+    {% if family['Рекомендации'] %}
+      <div class="info">
+        <div class="row header">Рекомендации:</div>
+        {% for rec in family['Рекомендации'] %}
+          <div class="row rec-info-element">{{rec}}</div>
+        {% endfor %}
       </div>
+    {% endif %}
 
-      <div class="row flex-row income-info-element">
-        <div class="column col1">{{family['per_capita_income']['name']}}</div>
-        <div class="column col2 num">{{family['per_capita_income']['value']}}</div>
+    {% if family['Социальные статусы (кол-во человек)'] %}
+      <div class="info">
+        <div class="row header">Социальные статусы (кол-во человек):</div>
+        {% for key, value in family['Социальные статусы (кол-во человек)'].items() %}
+          <div class="row flex-row rec-info-element">
+            <div class="column col1">{{key}}</div>
+            <div class="column col2 num">{{value}}</div>
+          </div>
+        {% endfor %}
       </div>
-
-      <div class="row flex-row income-info-element">
-        <div class="column col1">{{family['total_income_asp']['name']}}</div>
-        <div class="column col2 num">{{family['total_income_asp']['value']}}</div>
-      </div>
-
-      <div class="row flex-row income-info-element">
-        <div class="column col1">{{family['per_capita_income_asp']['name']}}</div>
-        <div class="column col2 num">{{family['per_capita_income_asp']['value']}}</div>
-      </div>
-
-      <div class="row flex-row income-info-element">
-        <div class="column col1">{{family['income']['name']}}</div>
-        <div class="column col2">{{family['income']['value']}}</div>
-      </div>
-    </div>
-    <div class="info">
-      <div class="row header">Рекомендации:</div>
-      {% for rec in family['recommendations'] %}
-      <div class="row rec-info-element">{{rec}}</div>
-      {% endfor %}
-    </div>
-    <div class="info">
-      <div class="row header">Социальные статусы (кол-во человек):</div>
-      {% for key, value in family['social_status'].items() %}
-      <div class="row rec-info-element">{{key}} {{value}}</div>
-      {% endfor %}
-    </div>
+    {% endif %}
   </div>
 </div>
-
-<script src="{{url_for('static', filename='js/script.js')}}"></script>
+<script src="{{url_for('static', filename='js/loaded.js')}}"></script>
 {% endif %}
+<script src="{{url_for('static', filename='js/script.js')}}"></script>
 </body>
 </html>
