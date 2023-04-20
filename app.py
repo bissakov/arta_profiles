@@ -11,11 +11,11 @@ from family_selenium.custom_exceptions import FamilyNotFound, WrongPassword, Wro
 
 app = Flask(__name__)
 
-options = Options()
-options.add_argument('--headless')
-options.add_argument('--no-sandbox')
-options.add_argument('--disable-dev-shm-usage')
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+# options = Options()
+# options.add_argument('--headless')
+# options.add_argument('--no-sandbox')
+# options.add_argument('--disable-dev-shm-usage')
+# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 
 @app.route('/', methods=['GET', 'POST'])
