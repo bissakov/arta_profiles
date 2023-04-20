@@ -5,11 +5,16 @@ from typing import Dict, Any, List
 import bs4
 import httpx
 import rich
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 
 try:
-    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value
+    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer
     from family_selenium.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
 except (ModuleNotFoundError, ImportError):
     from utils import get_headers, is_valid_iin, get_env_vars, convert_value
