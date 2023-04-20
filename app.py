@@ -1,12 +1,20 @@
-import json
 import httpx
 from flask import Flask, request, render_template
-from family_data.family import get_family_data
-from family_data.entities import Family
-from family_data.utils import FamilyNotFound, WrongPassword, FamilyNotInList
+from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
+from family_selenium.family import get_family_data
+from family_selenium.utils import FamilyNotFound, WrongPassword, WrongIIN
 
 app = Flask(__name__)
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -20,17 +28,22 @@ def home() -> str:
     error_msg = None
 
     try:
-        family = get_family_data(iin)
+        family = get_family_data(iin, driver)
+        # with open('test.json', 'r', encoding='utf-8') as f:
+        #     family = json.load(f)
     except FamilyNotFound:
-        error_msg = 'Неправильный ИИН'
-    except httpx.HTTPError:
+        error_msg = 'Семья не найдена. Проверьте ИИН'
+    except httpx.HTTPError or WebDriverException:
         error_msg = 'Connection error'
     except WrongPassword:
         error_msg = 'Неправильный пароль. Свяжитесь с администраторами'
-    except FamilyNotInList:
-        error_msg = 'ИИН не найден в списке "Потенциальные получатели АСП с детьми"'
+    except WrongIIN:
+        error_msg = 'Неверный ИИН. ИИН должен состоять из 12 цифр без букв и пробелов'
 
-    return render_template('index.html', data=iin, family=family.to_dict() if family else None, error=error_msg)
+    import time
+    time.sleep(5)
+
+    return render_template('index.html', data=iin, family=family if family else None, error=error_msg)
 
 
 if __name__ == '__main__':

@@ -48,19 +48,6 @@ class Risks:
 
 
 @dataclass
-class Recommendations:
-    need_asp: bool = True
-    need_edu: bool = False
-    need_med: bool = False
-    need_emp: bool = False
-    need_nedv: bool = False
-
-    def to_dict(self) -> List[str]:
-        names = ['АСП', 'Образование', 'Медицина', 'Трудоустройство', 'Жилье']
-        return [name for recommendation, name in zip(fields(self), names) if getattr(self, recommendation.name)]
-
-
-@dataclass
 class Assets:
     land_cnt: int = 0
     emp_cnt: int = 0
@@ -85,7 +72,7 @@ class Family:
     total_income_asp: int = 0
     per_capita_income_asp: int = 0
     income: str = None
-    recommendations: Recommendations = Recommendations()
+    recommendations: List[str] = field(default_factory=list)
     assets: Assets = Assets()
     risks: Risks = Risks()
     social_status: Dict[str, int] = field(default_factory=get_social_status_dict)

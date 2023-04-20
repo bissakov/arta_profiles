@@ -26,6 +26,10 @@ class FamilyNotInList(Exception):
         self.iin = iin
 
 
+def is_valid_iin(iin: str) -> bool:
+    return len(iin) == 12 and next((True for c in iin if c.isdigit()), False)
+
+
 def get_headers() -> Dict[str, str]:
     return {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',

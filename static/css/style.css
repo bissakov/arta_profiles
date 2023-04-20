@@ -119,3 +119,9 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background-color: #0069d9;
 }
+
+button[type="submit"].loading {
+  background-color: #b5b5b5;
+  color: #000;
+  cursor: default;
+}
