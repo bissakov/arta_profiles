@@ -27,30 +27,20 @@ class User:
     password: str
 
 
-def get_token(user: User, base_url: str) -> Dict:
-    response = httpx.post(
+@timer
+def get_token(user: User, base_url: str, client: httpx.Client) -> Dict[Any, Any]:
+    response = client.post(
         url=f'{base_url}/auth/login',
         json={'username': user.username, 'password': user.password},
-        headers=get_headers()
     )
     response.raise_for_status()
     return response.json()
 
 
-def set_local_storage(driver: WebDriver, storage: Dict) -> None:
-    access_token = storage['accessToken']
-    refresh_token = storage['refreshToken']
-    user_auth = json.dumps(storage['user'], ensure_ascii=False)
-    script = f"localStorage.setItem('accessToken', '{access_token}');"
-    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
-    script += f"localStorage.setItem('userAuth', '{user_auth}');"
-    driver.execute_script(script)
-
-
-def get_member_data(iin: str, base_url: str, token: str) -> List[Dict[str, str]]:
-    headers = get_headers()
-    headers['Authorization'] = f'Bearer {token}'
-    response = httpx.post(url=f'{base_url}/api/card/familyInfo', json={'iin': iin}, headers=headers)
+@timer
+def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -> List[Dict[str, str]]:
+    client.headers['Authorization'] = f'Bearer {token}'
+    response = client.post(url=f'{base_url}/api/card/familyInfo', json={'iin': iin})
     response.raise_for_status()
     family_data = response.json()
 
@@ -64,6 +54,18 @@ def get_member_data(iin: str, base_url: str, token: str) -> List[Dict[str, str]]
     return member_data
 
 
+@timer
+def set_local_storage(driver: WebDriver, storage: Dict) -> None:
+    access_token = storage['accessToken']
+    refresh_token = storage['refreshToken']
+    user_auth = json.dumps(storage['user'], ensure_ascii=False)
+    script = f"localStorage.setItem('accessToken', '{access_token}');"
+    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
+    script += f"localStorage.setItem('userAuth', '{user_auth}');"
+    driver.execute_script(script)
+
+
+@timer
 def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     general_info = dict()
     rows = soup.select('div > strong, .row')
@@ -89,39 +91,40 @@ def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     return general_info
 
 
-def get_family_data(iin: str, driver: WebDriver) -> Any:
+@timer
+def get_family_data(iin: str, driver: WebDriver = None) -> Any:
     if not is_valid_iin(iin=iin):
         raise WrongIIN(iin=iin)
 
     base_url, username, password = get_env_vars()
     user = User(username=username, password=password)
-    auth_data = get_token(user=user, base_url=base_url)
-    member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'])
+    with httpx.Client(headers=get_headers(), timeout=None) as client:
+        auth_data = get_token(user=user, base_url=base_url, client=client)
+        member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'], client=client)
 
-    driver.get(url=base_url)
-    set_local_storage(driver, auth_data)
-    driver.get(f'{base_url}/#/family/{iin}')
-    driver.implicitly_wait(10)
-    soup = bs4.BeautifulSoup(
-        markup=driver.find_element(By.CLASS_NAME, 'col-md-9').get_attribute('innerHTML'),
-        features='html.parser'
-    )
+    if not driver:
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+    with driver:
+        driver.get(url=base_url)
+        set_local_storage(driver, auth_data)
+        driver.get(f'{base_url}/#/family/{iin}')
+        driver.implicitly_wait(10)
+        soup = bs4.BeautifulSoup(
+            # markup=driver.find_element(By.CLASS_NAME, 'col-md-9').get_attribute('innerHTML'),
+            markup=driver.page_source,
+            features='html.parser',
+            parse_only=bs4.SoupStrainer('div', attrs={'class': 'col-md-9'})
+        )
 
     general_info = get_general_info(soup=soup)
     return {'Члены семьи': member_data, **general_info}
 
 
 if __name__ == '__main__':
-    from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.chrome.service import Service
-    from webdriver_manager.chrome import ChromeDriverManager
-
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    _driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    with _driver:
-        data = get_family_data(iin='444444444444', driver=_driver)
-    rich.print(data)
+    data = get_family_data(iin='880415400619')
+    # rich.print(data)
