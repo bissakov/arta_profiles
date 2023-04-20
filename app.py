@@ -7,9 +7,10 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 from family_selenium.family import get_family_data
-from family_selenium.utils import FamilyNotFound, WrongPassword, WrongIIN
+from family_selenium.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
 
 app = Flask(__name__)
+
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--no-sandbox')
