@@ -45,18 +45,6 @@ def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -
     return member_data
 
 
-# TODO page type
-async def async_set_local_storage(page, storage: Dict) -> None:
-    print(type(page))
-    access_token = storage['accessToken']
-    refresh_token = storage['refreshToken']
-    user_auth = json.dumps(storage['user'], ensure_ascii=False)
-    script = f"localStorage.setItem('accessToken', '{access_token}');"
-    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
-    script += f"localStorage.setItem('userAuth', '{user_auth}');"
-    await page.evaluate(script)
-
-
 def sync_set_local_storage(page, storage: Dict) -> None:
     access_token = storage['accessToken']
     refresh_token = storage['refreshToken']
