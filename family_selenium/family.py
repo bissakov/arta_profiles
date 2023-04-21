@@ -5,21 +5,15 @@ from typing import Dict, Any, List
 
 import bs4
 import httpx
-import rich
-
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.webdriver import WebDriver
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
+from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
 try:
-    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer, async_timer
+    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer
     from family_selenium.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
 except (ModuleNotFoundError, ImportError):
     from utils import get_headers, is_valid_iin, get_env_vars, convert_value
-    from family_selenium.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
+    from custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
 
 
 @dataclass
@@ -33,6 +27,7 @@ def get_token(user: User, base_url: str, client: httpx.Client) -> Dict[Any, Any]
     response = client.post(
         url=f'{base_url}/auth/login',
         json={'username': user.username, 'password': user.password},
+        timeout=3
     )
     response.raise_for_status()
     return response.json()
@@ -55,15 +50,25 @@ def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -
     return member_data
 
 
-@timer
-def set_local_storage(driver: WebDriver, storage: Dict) -> None:
+# TODO page type
+async def async_set_local_storage(page, storage: Dict) -> None:
     access_token = storage['accessToken']
     refresh_token = storage['refreshToken']
     user_auth = json.dumps(storage['user'], ensure_ascii=False)
     script = f"localStorage.setItem('accessToken', '{access_token}');"
     script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
     script += f"localStorage.setItem('userAuth', '{user_auth}');"
-    driver.execute_script(script)
+    await page.evaluate(script)
+
+
+def sync_set_local_storage(page, storage: Dict) -> None:
+    access_token = storage['accessToken']
+    refresh_token = storage['refreshToken']
+    user_auth = json.dumps(storage['user'], ensure_ascii=False)
+    script = f"localStorage.setItem('accessToken', '{access_token}');"
+    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
+    script += f"localStorage.setItem('userAuth', '{user_auth}');"
+    page.evaluate(script)
 
 
 @timer
@@ -92,8 +97,7 @@ def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     return general_info
 
 
-@timer
-def get_family_data(iin: str, driver: WebDriver = None) -> Any:
+async def async_get_family_data(iin: str) -> Any:
     if not is_valid_iin(iin=iin):
         raise WrongIIN(iin=iin)
 
@@ -103,56 +107,51 @@ def get_family_data(iin: str, driver: WebDriver = None) -> Any:
         auth_data = get_token(user=user, base_url=base_url, client=client)
         member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'], client=client)
 
-    if not driver:
-        options = Options()
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(headless=True)
 
-    with driver:
-        driver.get(url=base_url)
-        set_local_storage(driver, auth_data)
-        driver.get(f'{base_url}/#/family/{iin}')
-        driver.implicitly_wait(10)
+        page = await browser.new_page()
+        await page.goto(base_url)
+        await async_set_local_storage(page=page, storage=auth_data)
+        await page.goto(f'{base_url}/#/family/{iin}')
+        await page.reload()
+        await page.wait_for_selector('c-col.col-md-9')
+
+        container = await page.query_selector('c-col.col-md-9')
+
         soup = bs4.BeautifulSoup(
-            # markup=driver.find_element(By.CLASS_NAME, 'col-md-9').get_attribute('innerHTML'),
-            markup=driver.page_source,
+            markup=await container.inner_html(),
             features='html.parser',
-            parse_only=bs4.SoupStrainer('div', attrs={'class': 'col-md-9'})
         )
 
     general_info = get_general_info(soup=soup)
     return {'Члены семьи': member_data, **general_info}
 
 
-async def puppeteer_get_family_data(iin: str) -> Any:
+def sync_get_family_data(iin):
+    if not is_valid_iin(iin=iin):
+        raise WrongIIN(iin=iin)
+
     base_url, username, password = get_env_vars()
     user = User(username=username, password=password)
     with httpx.Client(headers=get_headers(), timeout=None) as client:
         auth_data = get_token(user=user, base_url=base_url, client=client)
         member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'], client=client)
 
-    browser = await launch(headless=False, defaultViewport=None, args=['--start-maximized'])
-    page = await browser.newPage()
-    await page.goto(base_url)
-    access_token = auth_data['accessToken']
-    refresh_token = auth_data['refreshToken']
-    user_auth = json.dumps(auth_data['user'], ensure_ascii=False)
-    script = f"localStorage.setItem('accessToken', '{access_token}');"
-    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
-    script += f"localStorage.setItem('userAuth', '{user_auth}');"
-    await page.evaluate(script)
-    await page.goto(f'{base_url}/#/family/{iin}', waitUntil='networkidle2')
-    await page.waitForSelector('div.col-md-9')
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
 
-    soup = bs4.BeautifulSoup(
-        markup=await page.evaluate('document.querySelector("div.col-md-9").innerHTML'),
-        features='html.parser',
-        parse_only=bs4.SoupStrainer('div', attrs={'class': 'col-md-9'})
-    )
+        page = browser.new_page()
+        page.goto(base_url)
+        sync_set_local_storage(page=page, storage=auth_data)
+        page.goto(f'{base_url}/#/family/{iin}')
+        page.reload()
+        page.wait_for_selector('c-col.col-md-9')
 
-    await browser.close()
+        soup = bs4.BeautifulSoup(
+            markup=page.query_selector('c-col.col-md-9').inner_html(),
+            features='html.parser',
+        )
 
     general_info = get_general_info(soup=soup)
     return {'Члены семьи': member_data, **general_info}
@@ -161,15 +160,22 @@ async def puppeteer_get_family_data(iin: str) -> Any:
 if __name__ == '__main__':
     # data = get_family_data(iin='880415400619')
 
-    import asyncio
-    from pyppeteer import launch
-
     start_time = time.perf_counter()
-
-    data = asyncio.get_event_loop().run_until_complete((puppeteer_get_family_data(iin='880415400619')))
-
+    try:
+        data = sync_get_family_data(iin='880415400619')
+    except httpx.ConnectTimeout:
+        print('No VPN')
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
     print(f'Elapsed time: {elapsed_time:.4f} seconds')
 
-    rich.print(data)
+    # start_time = time.perf_counter()
+    # try:
+    #     data = asyncio.get_event_loop().run_until_complete(async_get_family_data(iin='880415400619'))
+    # except httpx.ConnectTimeout:
+    #     print('No VPN')
+    # end_time = time.perf_counter()
+    # elapsed_time = end_time - start_time
+    # print(f'Elapsed time: {elapsed_time:.4f} seconds')
+
+    # rich.print(data)
