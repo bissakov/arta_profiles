@@ -28,6 +28,9 @@ def home() -> str:
     family = None
     error_msg = None
 
+    if iin == '':
+        return render_template('index.html', data=iin, family=family, error='Введите ИИН')
+
     try:
         family = get_family_data(iin, driver)
         # with open('test.json', 'r', encoding='utf-8') as f:
