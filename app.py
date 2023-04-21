@@ -1,11 +1,5 @@
 import httpx
 from flask import Flask, request, render_template
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-
 from family_selenium.family import async_get_family_data, sync_get_family_data
 from family_selenium.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
 
