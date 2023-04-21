@@ -1,8 +1,9 @@
 import httpx
 from flask import Flask, request, render_template
 
-from family_browser.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
-from family_browser.family import sync_get_family_data
+from family.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
+from family.family import get_family_data
+
 
 app = Flask(__name__)
 
@@ -21,7 +22,7 @@ def home() -> str:
         return render_template('index.html', data=iin, family=family, error='Введите ИИН')
 
     try:
-        family = sync_get_family_data(iin)
+        family = get_family_data(iin)
     except FamilyNotFound:
         error_msg = 'Семья не найдена. Проверьте ИИН'
     except httpx.ConnectTimeout:
@@ -36,3 +37,4 @@ def home() -> str:
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
+

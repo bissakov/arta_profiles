@@ -2,18 +2,17 @@ import json
 import time
 from dataclasses import dataclass
 from typing import Dict, Any, List
-
 import bs4
 import httpx
-from playwright.async_api import async_playwright
 from playwright.sync_api import sync_playwright
+from playwright.sync_api._generated import Page
 
 try:
-    from family_browser.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer
-    from family_browser.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
+    from family.utils import get_headers, is_valid_iin, get_env_vars, convert_value
+    from family.custom_exceptions import FamilyNotFound, WrongIIN
 except (ModuleNotFoundError, ImportError):
     from utils import get_headers, is_valid_iin, get_env_vars, convert_value
-    from custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
+    from custom_exceptions import FamilyNotFound, WrongIIN
 
 
 @dataclass
@@ -22,7 +21,6 @@ class User:
     password: str
 
 
-@timer
 def get_token(user: User, base_url: str, client: httpx.Client) -> Dict[Any, Any]:
     response = client.post(
         url=f'{base_url}/auth/login',
@@ -33,7 +31,6 @@ def get_token(user: User, base_url: str, client: httpx.Client) -> Dict[Any, Any]
     return response.json()
 
 
-@timer
 def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -> List[Dict[str, str]]:
     client.headers['Authorization'] = f'Bearer {token}'
     response = client.post(url=f'{base_url}/api/card/familyInfo', json={'iin': iin})
@@ -42,26 +39,22 @@ def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -
 
     if family_data['family'] is None:
         raise FamilyNotFound(iin=iin)
+ 
+    member_list = family_data['familyMemberList']
 
-    member_data = [{'ИИН': member['iin'], 'ФИО': member['fullName']} for member in family_data['familyMemberList']]
-    selected_member_info = next((i, member) for i, member in enumerate(member_data) if member['ИИН'] == iin)
-    member_data.pop(selected_member_info[0])
-    member_data.insert(0, selected_member_info[1])
+    member_data = []
+    selected_member_info = None
+    for member in member_list:
+        member_info = {'ИИН': member['iin'], 'ФИО': member['fullName']}
+        if member['iin'] == iin:
+            selected_member_info = member_info
+        else:
+            member_data.append(member_info)
+    member_data.insert(0, selected_member_info)
     return member_data
 
 
-# TODO page type
-async def async_set_local_storage(page, storage: Dict) -> None:
-    access_token = storage['accessToken']
-    refresh_token = storage['refreshToken']
-    user_auth = json.dumps(storage['user'], ensure_ascii=False)
-    script = f"localStorage.setItem('accessToken', '{access_token}');"
-    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
-    script += f"localStorage.setItem('userAuth', '{user_auth}');"
-    await page.evaluate(script)
-
-
-def sync_set_local_storage(page, storage: Dict) -> None:
+def sync_set_local_storage(page: Page, storage: Dict) -> None:
     access_token = storage['accessToken']
     refresh_token = storage['refreshToken']
     user_auth = json.dumps(storage['user'], ensure_ascii=False)
@@ -71,7 +64,6 @@ def sync_set_local_storage(page, storage: Dict) -> None:
     page.evaluate(script)
 
 
-@timer
 def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     general_info = dict()
     rows = soup.select('div > strong, .row')
@@ -97,7 +89,7 @@ def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     return general_info
 
 
-async def async_get_family_data(iin: str) -> Any:
+def get_family_data(iin) -> Dict[str, List | Dict]:
     if not is_valid_iin(iin=iin):
         raise WrongIIN(iin=iin)
 
@@ -105,38 +97,12 @@ async def async_get_family_data(iin: str) -> Any:
     user = User(username=username, password=password)
     with httpx.Client(headers=get_headers(), timeout=None) as client:
         auth_data = get_token(user=user, base_url=base_url, client=client)
-        member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'], client=client)
-
-    async with async_playwright() as playwright:
-        browser = await playwright.chromium.launch(headless=True)
-
-        page = await browser.new_page()
-        await page.goto(base_url)
-        await async_set_local_storage(page=page, storage=auth_data)
-        await page.goto(f'{base_url}/#/family/{iin}')
-        await page.reload()
-        await page.wait_for_selector('c-col.col-md-9')
-
-        container = await page.query_selector('c-col.col-md-9')
-
-        soup = bs4.BeautifulSoup(
-            markup=await container.inner_html(),
-            features='html.parser',
+        member_data = get_member_data(
+            iin=iin,
+            base_url=base_url,
+            token=auth_data['accessToken'],
+            client=client
         )
-
-    general_info = get_general_info(soup=soup)
-    return {'Члены семьи': member_data, **general_info}
-
-
-def sync_get_family_data(iin):
-    if not is_valid_iin(iin=iin):
-        raise WrongIIN(iin=iin)
-
-    base_url, username, password = get_env_vars()
-    user = User(username=username, password=password)
-    with httpx.Client(headers=get_headers(), timeout=None) as client:
-        auth_data = get_token(user=user, base_url=base_url, client=client)
-        member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'], client=client)
 
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
@@ -146,14 +112,22 @@ def sync_get_family_data(iin):
         sync_set_local_storage(page=page, storage=auth_data)
         page.goto(f'{base_url}/#/family/{iin}')
         page.reload()
-        page.wait_for_selector('c-col.col-md-9')
 
-        soup = bs4.BeautifulSoup(
-            markup=page.query_selector('c-col.col-md-9').inner_html(),
-            features='html.parser',
+        container_selector = 'c-col.col-md-9'
+        page.wait_for_selector(container_selector)
+
+        container = page.query_selector(container_selector)
+
+        if not container:
+            raise ValueError(f'{container_selector} not found')
+
+        general_info = get_general_info(
+            soup=bs4.BeautifulSoup(
+                markup=container.inner_html(),
+                features='html.parser'
+            )
         )
 
-    general_info = get_general_info(soup=soup)
     return {'Члены семьи': member_data, **general_info}
 
 
@@ -169,13 +143,3 @@ if __name__ == '__main__':
     elapsed_time = end_time - start_time
     print(f'Elapsed time: {elapsed_time:.4f} seconds')
 
-    # start_time = time.perf_counter()
-    # try:
-    #     data = asyncio.get_event_loop().run_until_complete(async_get_family_data(iin='880415400619'))
-    # except httpx.ConnectTimeout:
-    #     print('No VPN')
-    # end_time = time.perf_counter()
-    # elapsed_time = end_time - start_time
-    # print(f'Elapsed time: {elapsed_time:.4f} seconds')
-
-    # rich.print(data)

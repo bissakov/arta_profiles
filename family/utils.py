@@ -23,7 +23,7 @@ def timer(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def get_env_vars() -> Tuple[str, str, str]:
+def get_env_vars() -> Tuple:
     dotenv.load_dotenv()
     base_url, username, password = os.getenv('URL'), os.getenv('USR'), os.getenv('PSW')
     if not bool(base_url and username and password):
@@ -35,7 +35,7 @@ def is_valid_iin(iin: str) -> bool:
     return len(iin) == 12 and next((True for c in iin if c.isdigit()), False)
 
 
-def convert_value(val: str) -> Any:
+def convert_value(val: str) -> str | int | float:
     if next((True for c in val if c.isalpha()), False):
         return val.strip()
     val = val.replace(' ', '')
@@ -60,3 +60,4 @@ def get_headers() -> Dict[str, str]:
         'Pragma': 'no-cache',
         'Cache-Control': 'no-cache'
     }
+
