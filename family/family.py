@@ -39,11 +39,18 @@ def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -
 
     if family_data['family'] is None:
         raise FamilyNotFound(iin=iin)
+ 
+    member_list = family_data['familyMemberList']
 
-    member_data = [{'ИИН': member['iin'], 'ФИО': member['fullName']} for member in family_data['familyMemberList']]
-    selected_member_info = next((i, member) for i, member in enumerate(member_data) if member['ИИН'] == iin)
-    member_data.pop(selected_member_info[0])
-    member_data.insert(0, selected_member_info[1])
+    member_data = []
+    selected_member_info = None
+    for member in member_list:
+        member_info = {'ИИН': member['iin'], 'ФИО': member['fullName']}
+        if member['iin'] == iin:
+            selected_member_info = member_info
+        else:
+            member_data.append(member_info)
+    member_data.insert(0, selected_member_info)
     return member_data
 
 
@@ -82,7 +89,7 @@ def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     return general_info
 
 
-def sync_get_family_data(iin):
+def get_family_data(iin) -> Dict[str, List | Dict]:
     if not is_valid_iin(iin=iin):
         raise WrongIIN(iin=iin)
 
@@ -90,7 +97,12 @@ def sync_get_family_data(iin):
     user = User(username=username, password=password)
     with httpx.Client(headers=get_headers(), timeout=None) as client:
         auth_data = get_token(user=user, base_url=base_url, client=client)
-        member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'], client=client)
+        member_data = get_member_data(
+            iin=iin,
+            base_url=base_url,
+            token=auth_data['accessToken'],
+            client=client
+        )
 
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
@@ -100,17 +112,22 @@ def sync_get_family_data(iin):
         sync_set_local_storage(page=page, storage=auth_data)
         page.goto(f'{base_url}/#/family/{iin}')
         page.reload()
-        page.wait_for_selector('c-col.col-md-9')
 
-        container = page.query_selector('c-col.col-md-9')
-        print(type(container))
+        container_selector = 'c-col.col-md-9'
+        page.wait_for_selector(container_selector)
 
-        soup = bs4.BeautifulSoup(
-            markup=container.inner_html(),
-            features='html.parser',
+        container = page.query_selector(container_selector)
+
+        if not container:
+            raise ValueError(f'{container_selector} not found')
+
+        general_info = get_general_info(
+            soup=bs4.BeautifulSoup(
+                markup=container.inner_html(),
+                features='html.parser'
+            )
         )
 
-    general_info = get_general_info(soup=soup)
     return {'Члены семьи': member_data, **general_info}
 
 
