@@ -1,4 +1,5 @@
 import json
+import time
 from dataclasses import dataclass
 from typing import Dict, Any, List
 
@@ -14,7 +15,7 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 try:
-    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer
+    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer, async_timer
     from family_selenium.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
 except (ModuleNotFoundError, ImportError):
     from utils import get_headers, is_valid_iin, get_env_vars, convert_value
@@ -125,6 +126,50 @@ def get_family_data(iin: str, driver: WebDriver = None) -> Any:
     return {'Члены семьи': member_data, **general_info}
 
 
+async def puppeteer_get_family_data(iin: str) -> Any:
+    base_url, username, password = get_env_vars()
+    user = User(username=username, password=password)
+    with httpx.Client(headers=get_headers(), timeout=None) as client:
+        auth_data = get_token(user=user, base_url=base_url, client=client)
+        member_data = get_member_data(iin=iin, base_url=base_url, token=auth_data['accessToken'], client=client)
+
+    browser = await launch(headless=False, defaultViewport=None, args=['--start-maximized'])
+    page = await browser.newPage()
+    await page.goto(base_url)
+    access_token = auth_data['accessToken']
+    refresh_token = auth_data['refreshToken']
+    user_auth = json.dumps(auth_data['user'], ensure_ascii=False)
+    script = f"localStorage.setItem('accessToken', '{access_token}');"
+    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
+    script += f"localStorage.setItem('userAuth', '{user_auth}');"
+    await page.evaluate(script)
+    await page.goto(f'{base_url}/#/family/{iin}', waitUntil='networkidle2')
+    await page.waitForSelector('div.col-md-9')
+
+    soup = bs4.BeautifulSoup(
+        markup=await page.evaluate('document.querySelector("div.col-md-9").innerHTML'),
+        features='html.parser',
+        parse_only=bs4.SoupStrainer('div', attrs={'class': 'col-md-9'})
+    )
+
+    await browser.close()
+
+    general_info = get_general_info(soup=soup)
+    return {'Члены семьи': member_data, **general_info}
+
+
 if __name__ == '__main__':
-    data = get_family_data(iin='880415400619')
-    # rich.print(data)
+    # data = get_family_data(iin='880415400619')
+
+    import asyncio
+    from pyppeteer import launch
+
+    start_time = time.perf_counter()
+
+    data = asyncio.get_event_loop().run_until_complete((puppeteer_get_family_data(iin='880415400619')))
+
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f'Elapsed time: {elapsed_time:.4f} seconds')
+
+    rich.print(data)
