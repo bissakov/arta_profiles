@@ -25,6 +25,7 @@ def get_token(user: User, base_url: str, client: httpx.Client) -> Dict[Any, Any]
     response = client.post(
         url=f'{base_url}/auth/login',
         json={'username': user.username, 'password': user.password},
+        timeout=3
     )
     response.raise_for_status()
     return response.json()
