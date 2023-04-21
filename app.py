@@ -34,8 +34,8 @@ def home() -> str:
         #     family = json.load(f)
     except FamilyNotFound:
         error_msg = 'Семья не найдена. Проверьте ИИН'
-    except httpx.HTTPError or WebDriverException:
-        error_msg = 'Connection error'
+    except httpx.ConnectTimeout:
+        error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
     except WrongPassword:
         error_msg = 'Неправильный пароль. Свяжитесь с администраторами'
     except WrongIIN:
