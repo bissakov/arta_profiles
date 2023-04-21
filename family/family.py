@@ -5,6 +5,7 @@ from typing import Dict, Any, List
 import bs4
 import httpx
 from playwright.sync_api import sync_playwright
+from playwright.sync_api._generated import Page
 
 try:
     from family.utils import get_headers, is_valid_iin, get_env_vars, convert_value
@@ -45,7 +46,7 @@ def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -
     return member_data
 
 
-def sync_set_local_storage(page, storage: Dict) -> None:
+def sync_set_local_storage(page: Page, storage: Dict) -> None:
     access_token = storage['accessToken']
     refresh_token = storage['refreshToken']
     user_auth = json.dumps(storage['user'], ensure_ascii=False)
