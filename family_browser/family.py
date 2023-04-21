@@ -9,8 +9,8 @@ from playwright.async_api import async_playwright
 from playwright.sync_api import sync_playwright
 
 try:
-    from family_selenium.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer
-    from family_selenium.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
+    from family_browser.utils import get_headers, is_valid_iin, get_env_vars, convert_value, timer
+    from family_browser.custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
 except (ModuleNotFoundError, ImportError):
     from utils import get_headers, is_valid_iin, get_env_vars, convert_value
     from custom_exceptions import FamilyNotFound, FamilyNotInList, WrongPassword, WrongIIN
