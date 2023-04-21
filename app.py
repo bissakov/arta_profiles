@@ -1,8 +1,8 @@
 import httpx
 from flask import Flask, request, render_template
-from family_selenium.family import async_get_family_data, sync_get_family_data
-from family_selenium.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
 
+from family_browser.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
+from family_browser.family import sync_get_family_data
 
 app = Flask(__name__)
 
