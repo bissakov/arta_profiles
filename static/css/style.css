@@ -1,13 +1,20 @@
 html, body {
-    margin: 0;
+  margin: 0;
+}
+
+* {
+  font-family: "Segoe UI", Arial, sans-serif;
+  letter-spacing: .5px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .family-portrait {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin: 0 auto;
-    width: 80%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 auto;
+  width: 80%;
 }
 
 .info {
@@ -71,7 +78,8 @@ html, body {
   background-color: #ffcccc;
   border: .15rem solid #ff0000;
   border-radius: .5rem;
-  color: #ff0000;
+  color: #000;
+  font-weight: bold;
   margin-top: .5rem;
   padding: .5rem;
 }
@@ -113,6 +121,7 @@ button[type="submit"] {
   border-radius: 5px;
   font-size: 16px;
   font-family: inherit;
+  font-weight: bold;
   cursor: pointer;
 }
 
