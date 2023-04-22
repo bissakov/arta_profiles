@@ -89,7 +89,7 @@ def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     return general_info
 
 
-def get_family_data(iin) -> Dict[str, List | Dict]:
+def get_family_data(iin: str) -> Dict[str, List | Dict]:
     if not is_valid_iin(iin=iin):
         raise WrongIIN(iin=iin)
 
