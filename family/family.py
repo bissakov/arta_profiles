@@ -54,7 +54,7 @@ def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -
     return member_data
 
 
-def sync_set_local_storage(page: Page, storage: Dict) -> None:
+def set_local_storage(page: Page, storage: Dict) -> None:
     access_token = storage['accessToken']
     refresh_token = storage['refreshToken']
     user_auth = json.dumps(storage['user'], ensure_ascii=False)
@@ -109,7 +109,7 @@ def get_family_data(iin) -> Dict[str, List | Dict]:
 
         page = browser.new_page()
         page.goto(base_url)
-        sync_set_local_storage(page=page, storage=auth_data)
+        set_local_storage(page=page, storage=auth_data)
         page.goto(f'{base_url}/#/family/{iin}')
         page.reload()
 
