@@ -132,14 +132,17 @@ def get_family_data(iin) -> Dict[str, List | Dict]:
 
 
 if __name__ == '__main__':
-    # data = get_family_data(iin='880415400619')
+    import rich
 
+    data = None
     start_time = time.perf_counter()
     try:
-        data = sync_get_family_data(iin='880415400619')
+        data = get_family_data(iin='880415400619')
     except httpx.ConnectTimeout:
         print('No VPN')
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
     print(f'Elapsed time: {elapsed_time:.4f} seconds')
+
+    rich.print(data)
 
