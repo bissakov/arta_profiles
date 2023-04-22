@@ -3,6 +3,7 @@ person_list/*
 person_data/*
 dev/*
 arta_family_db.db
+node_modules
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
