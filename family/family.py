@@ -59,7 +59,7 @@ def set_local_storage(page: Page, storage: Dict) -> None:
     refresh_token = storage['refreshToken']
     user_auth = json.dumps(storage['user'], ensure_ascii=False)
     script = f"localStorage.setItem('accessToken', '{access_token}');"
-    script += f"localStorage.setItem('refreshToken', '{refresh_token}');"
+    script += f"localStorage.setItem('refreshToken', '{refresh_token};');"
     script += f"localStorage.setItem('userAuth', '{user_auth}');"
     page.evaluate(script)
 
