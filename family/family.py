@@ -38,7 +38,7 @@ def get_member_data(iin: str, base_url: str, token: str, client: httpx.Client) -
     family_data = response.json()
 
     if family_data['family'] is None:
-        raise FamilyNotFound(iin=iin)
+        raise FamilyNotFound()
  
     member_list = family_data['familyMemberList']
 
@@ -89,9 +89,9 @@ def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
     return general_info
 
 
-def get_family_data(iin: str) -> Dict[str, List | Dict]:
-    if not is_valid_iin(iin=iin):
-        raise WrongIIN(iin=iin)
+def get_family_data(iin: str | None) -> Dict[str, List | Dict]:
+    if iin is None or is_valid_iin(iin=iin):
+        raise WrongIIN()
 
     base_url, username, password = get_env_vars()
     user = User(username=username, password=password)
