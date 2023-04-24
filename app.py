@@ -1,5 +1,6 @@
 import httpx
-from flask import Flask, json, request, render_template, jsonify
+import json
+from flask import Flask, request, render_template, jsonify
 
 from family.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
 from family.family import get_family_data
@@ -35,15 +36,14 @@ def index() -> str:
         return render_template('base.html', data=iin, family=family, error='Введите ИИН')
 
     try:
-        family = get_family_data(iin)
-    except FamilyNotFound:
-        error_msg = 'Семья не найдена. Проверьте ИИН'
-    except httpx.ConnectTimeout:
+        # family = get_family_data(iin)
+        with open('test.json', 'r') as f:
+            family = json.load(f)
+
+    except (FamilyNotFound, WrongIIN, WrongPassword) as e:
+        error_msg = e.error_msg
+    except (httpx.ConnectTimeout, httpx.ReadTimeout):
         error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
-    except WrongPassword:
-        error_msg = 'Неправильный пароль. Свяжитесь с администраторами'
-    except WrongIIN:
-        error_msg = 'Неверный ИИН. ИИН должен состоять из 12 цифр без букв и пробелов'
 
     return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
 
