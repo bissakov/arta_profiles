@@ -90,7 +90,7 @@ def get_general_info(soup: bs4.BeautifulSoup) -> Dict[str, Any]:
 
 
 def get_family_data(iin: str | None) -> Dict[str, List | Dict]:
-    if iin is None or is_valid_iin(iin=iin):
+    if iin is None or not is_valid_iin(iin=iin):
         raise WrongIIN()
 
     base_url, username, password = get_env_vars()
