@@ -1,40 +1,93 @@
-import httpx
-from flask import Flask, request, render_template
+import argparse
+import csv
+import io
+from typing import Any
 
-from family.custom_exceptions import FamilyNotFound, WrongPassword, WrongIIN
+import httpx
+from flask import Flask, jsonify, make_response, render_template, request
+from flask_caching import Cache
+
+from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--port', type=int, required=True)
+
 app = Flask(__name__)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+
+@app.route('/family', methods=['GET'])
+def get_family():
+    iin = request.args.get('iin')
+    try:
+        family_data = get_family_data(iin=iin)
+        return jsonify(({'data': family_data, 'success': True}))
+    except (FamilyNotFound, WrongIIN, WrongPassword) as e:
+        return jsonify({'error_msg': e.error_msg ,'success': False})
+
+
+def convert_to_csv(family: Any) -> str:
+    csv_dict = dict()
+    for key, val in family.items():
+        if key == 'Члены семьи':
+            for i, member in enumerate(val, start=1):
+                csv_dict[f'Член семьи {i}'] = f'{member["ИИН"]} {member["ФИО"]}'
+        elif type(val) is dict:
+            for key2, val2 in val.items():
+                csv_dict[key2] = val2
+        elif type(val) is list:
+            csv_key = 'Рекомендация' if key == 'Рекомендации' else 'Риск'
+            for i, el in enumerate(val, start=1):
+                csv_dict[f'{csv_key} {i}'] = el
+
+    csv_data = io.StringIO()
+    writer = csv.DictWriter(csv_data, fieldnames=csv_dict.keys(), delimiter=';')
+    writer.writeheader()
+    writer.writerow(csv_dict)
+    return csv_data.getvalue()
+
+
+@app.route('/download_csv', methods=['GET'])
+def download_csv():
+    family = cache.get('family')
+    response = make_response(convert_to_csv(family=family))
+    response.headers.set('Content-Disposition', 'attachment', filename='data.csv')
+    response.headers.set('Content-Type', 'text/csv')
+    return response
 
 
 @app.route('/', methods=['GET', 'POST'])
-def home() -> str:
+def index() -> str:
     iin = request.form.get('data', '')
 
+    base_html = 'base.html'
+
     if request.method != 'POST':
-        return render_template('index.html', data=iin, family=None, error=None)
+        return render_template(base_html, data=iin, family=None, error=None)
 
     family = None
     error_msg = None
 
     if iin == '':
-        return render_template('index.html', data=iin, family=family, error='Введите ИИН')
+        return render_template('base.html', data=iin, family=family, error='Введите ИИН')
 
     try:
         family = get_family_data(iin)
-    except FamilyNotFound:
-        error_msg = 'Семья не найдена. Проверьте ИИН'
-    except httpx.ConnectTimeout:
-        error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
-    except WrongPassword:
-        error_msg = 'Неправильный пароль. Свяжитесь с администраторами'
-    except WrongIIN:
-        error_msg = 'Неверный ИИН. ИИН должен состоять из 12 цифр без букв и пробелов'
+        # with open('test.json', 'r') as f:
+            # family = json.load(f)
+        cache.set('family', family, timeout=43200)
 
-    return render_template('index.html', data=iin, family=family if family else None, error=error_msg)
+    except (FamilyNotFound, WrongIIN, WrongPassword) as e:
+        error_msg = e.error_msg
+    except (httpx.ConnectTimeout, httpx.ReadTimeout):
+        error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
+
+    return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    args, unknown = parser.parse_known_args()
+    app.run(host='0.0.0.0', port=args.port, debug=True)
 

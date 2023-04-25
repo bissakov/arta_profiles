@@ -25,8 +25,16 @@ waitForElm('.family-portrait').then((element) => {
   submitButton.textContent = 'Запросить';
 });
 
-const nums = document.querySelectorAll('.num');
+const fullNames = document.querySelectorAll('.fullName');
+fullNames.forEach((fullNameEl) => {
+  const words = fullNameEl.textContent.toLowerCase().split(' ');
+  const modifiedWords = words.map((word) => word.charAt(0).toUpperCase() + word.slice(1));
+  const modifiedString = modifiedWords.join(' ');
+  fullNameEl.textContent = modifiedString;
+});
 
+
+const nums = document.querySelectorAll('.num');
 nums.forEach((num) => {
   const textContent = num.textContent;
   if (/[a-zA-Zа-яА-Я]/.test(textContent)){
