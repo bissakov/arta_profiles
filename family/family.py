@@ -149,8 +149,6 @@ if __name__ == '__main__':
     import rich
 
     data = None
-    iin = '880415400619'
-    # iin = '980127351266'
     start_time = time.perf_counter()
     try:
         data = get_family_data(iin=iin)
