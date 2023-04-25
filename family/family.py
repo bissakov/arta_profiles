@@ -1,18 +1,20 @@
 import json
 import time
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 import bs4
 import httpx
 from playwright.sync_api import sync_playwright
 from playwright.sync_api._generated import Page
 
 try:
-    from family.utils import get_headers, is_valid_iin, get_env_vars, convert_value
     from family.custom_exceptions import FamilyNotFound, WrongIIN
+    from family.utils import (convert_value, get_env_vars, get_headers,
+                              is_valid_iin)
 except (ModuleNotFoundError, ImportError):
-    from utils import get_headers, is_valid_iin, get_env_vars, convert_value
     from custom_exceptions import FamilyNotFound, WrongIIN
+    from utils import convert_value, get_env_vars, get_headers, is_valid_iin
 
 
 @dataclass
