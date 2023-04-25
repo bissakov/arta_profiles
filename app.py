@@ -81,7 +81,7 @@ def index() -> str:
 
     except (FamilyNotFound, WrongIIN, WrongPassword) as e:
         error_msg = e.error_msg
-    except (httpx.ConnectTimeout, httpx.ReadTimeout):
+    except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ConnectError):
         error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
 
     return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
