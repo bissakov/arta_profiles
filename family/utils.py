@@ -1,6 +1,6 @@
 import os
 import time
-from typing import Dict, Tuple, Any, Callable
+from typing import Any, Callable, Dict, Tuple
 import dotenv
 
 
