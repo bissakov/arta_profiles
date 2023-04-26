@@ -61,6 +61,8 @@ def index() -> str:
     # flask_app.logger.error("Error log info")
     # flask_app.logger.critical("Critical log info")
 
+    flask_app.logger.info("HELLO")
+
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
