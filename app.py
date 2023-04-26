@@ -61,11 +61,10 @@ def index() -> str:
     # flask_app.logger.error("Error log info")
     # flask_app.logger.critical("Critical log info")
 
-    flask_app.logger.info("HELLO")
-
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
+    flask_app.logger.info(iin, request.method, sep='\t~~\t')
 
     if request.method != 'POST':
         return render_template(base_html, data=iin, family=None, error=None)
