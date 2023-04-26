@@ -55,7 +55,7 @@ def download_csv():
     return response
 
 
-@flask_app.rout('/family', methods=['POST'])
+@flask_app.route('/family', methods=['POST'])
 def render_family() -> str:
     iin = request.form.get('data', '')
 
