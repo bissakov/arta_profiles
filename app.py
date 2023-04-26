@@ -57,12 +57,6 @@ def download_csv():
 
 @flask_app.route('/', methods=['GET', 'POST'])
 def index() -> str:
-    # flask_app.logger.debug("Debug log info")
-    # flask_app.logger.info("Info log information")
-    # flask_app.logger.warning("Warning log info")
-    # flask_app.logger.error("Error log info")
-    # flask_app.logger.critical("Critical log info")
-
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
