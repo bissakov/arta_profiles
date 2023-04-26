@@ -10,16 +10,6 @@ from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
 
 
-logging.basicConfig(filename='record.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s',
-                    encoding='utf-8')
-# logging.getLogger('httpx').setLevel(logging.WARNING)
-logging.getLogger('httpcore').setLevel(logging.WARNING)
-
-flask_app = Flask(__name__)
-cache = Cache(flask_app, config={'CACHE_TYPE': 'simple'})
-
-
 @flask_app.route('/family', methods=['GET'])
 def get_family():
     iin = request.args.get('iin')
@@ -97,3 +87,12 @@ def index() -> str:
 
 if __name__ == '__main__':
     flask_app.run()
+else:
+    logging.basicConfig(filename='record.log', level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s',
+                        encoding='utf-8')
+# logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('httpcore').setLevel(logging.WARNING)
+
+    flask_app = Flask(__name__)
+    cache = Cache(flask_app, config={'CACHE_TYPE': 'simple'})
