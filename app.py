@@ -94,3 +94,6 @@ def index() -> str:
 
     return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
 
+
+if __name__ == '__main__':
+    flask_app.run()
