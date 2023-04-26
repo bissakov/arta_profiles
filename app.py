@@ -15,14 +15,14 @@ flask_app = Flask(__name__)
 CORS(flask_app)
 
 
-# @flask_app.route('/family', methods=['GET'])
-# def get_family():
-#     iin = request.args.get('iin')
-#     try:
-#         family_data = get_family_data(iin=iin)
-#         return jsonify(({'data': family_data, 'success': True}))
-#     except (FamilyNotFound, WrongIIN, WrongPassword) as e:
-#         return jsonify({'error_msg': e.error_msg ,'success': False})
+@flask_app.route('/family', methods=['GET'])
+def get_family():
+    iin = request.args.get('iin')
+    try:
+        family_data = get_family_data(iin=iin)
+        return jsonify(({'data': family_data, 'success': True}))
+    except (FamilyNotFound, WrongIIN, WrongPassword) as e:
+        return jsonify({'error_msg': e.error_msg ,'success': False})
 
 
 def convert_to_csv(family: Any) -> str:
@@ -55,8 +55,14 @@ def download_csv():
     return response
 
 
-@flask_app.route('/family', methods=['GET', 'POST'])
-def render_family() -> str:
+@flask_app.route('/', methods=['GET', 'POST'])
+def index() -> str:
+    # flask_app.logger.debug("Debug log info")
+    # flask_app.logger.info("Info log information")
+    # flask_app.logger.warning("Warning log info")
+    # flask_app.logger.error("Error log info")
+    # flask_app.logger.critical("Critical log info")
+
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
@@ -83,13 +89,6 @@ def render_family() -> str:
         error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
 
     return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
-
-
-@flask_app.route('/', methods=['GET'])
-def index() -> str:
-    return render_template('base.html', data=None, family=None, error=None)
-
-
 
 
 if __name__ == '__main__':
