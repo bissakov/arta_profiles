@@ -11,7 +11,8 @@ from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
 
 
-flask_app = CORS(Flask(__name__))
+flask_app = Flask(__name__)
+CORS(flask_app)
 
 
 @flask_app.route('/family', methods=['GET'])
