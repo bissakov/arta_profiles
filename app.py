@@ -2,7 +2,7 @@ import argparse
 import csv
 import io
 from typing import Any
-
+import logging
 import httpx
 from flask import Flask, jsonify, make_response, render_template, request
 from flask_caching import Cache
@@ -13,6 +13,11 @@ from family.family import get_family_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--port', type=int, required=True)
+logging.basicConfig(filename='record.log', level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s',
+                    encoding='utf-8')
+# logging.getLogger('httpx').setLevel(logging.WARNING)
+logging.getLogger('httpcore').setLevel(logging.WARNING)
 
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
@@ -60,6 +65,12 @@ def download_csv():
 
 @app.route('/', methods=['GET', 'POST'])
 def index() -> str:
+    app.logger.debug("Debug log info")
+    app.logger.info("Info log information")
+    app.logger.warning("Warning log info")
+    app.logger.error("Error log info")
+    app.logger.critical("Critical log info")
+
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
