@@ -15,14 +15,14 @@ flask_app = Flask(__name__)
 CORS(flask_app)
 
 
-@flask_app.route('/family', methods=['GET'])
-def get_family():
-    iin = request.args.get('iin')
-    try:
-        family_data = get_family_data(iin=iin)
-        return jsonify(({'data': family_data, 'success': True}))
-    except (FamilyNotFound, WrongIIN, WrongPassword) as e:
-        return jsonify({'error_msg': e.error_msg ,'success': False})
+# @flask_app.route('/family', methods=['GET'])
+# def get_family():
+#     iin = request.args.get('iin')
+#     try:
+#         family_data = get_family_data(iin=iin)
+#         return jsonify(({'data': family_data, 'success': True}))
+#     except (FamilyNotFound, WrongIIN, WrongPassword) as e:
+#         return jsonify({'error_msg': e.error_msg ,'success': False})
 
 
 def convert_to_csv(family: Any) -> str:
