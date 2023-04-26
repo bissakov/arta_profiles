@@ -10,6 +10,9 @@ from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
 
 
+flask_app = Flask(__name__)
+
+
 @flask_app.route('/family', methods=['GET'])
 def get_family():
     iin = request.args.get('iin')
@@ -94,5 +97,4 @@ else:
 # logging.getLogger('httpx').setLevel(logging.WARNING)
     logging.getLogger('httpcore').setLevel(logging.WARNING)
 
-    flask_app = Flask(__name__)
     cache = Cache(flask_app, config={'CACHE_TYPE': 'simple'})
