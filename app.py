@@ -55,14 +55,8 @@ def download_csv():
     return response
 
 
-@flask_app.route('/', methods=['GET', 'POST'])
-def index() -> str:
-    # flask_app.logger.debug("Debug log info")
-    # flask_app.logger.info("Info log information")
-    # flask_app.logger.warning("Warning log info")
-    # flask_app.logger.error("Error log info")
-    # flask_app.logger.critical("Critical log info")
-
+@flask_app.rout('/family', methods=['POST'])
+def render_family() -> str:
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
@@ -89,6 +83,13 @@ def index() -> str:
         error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
 
     return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
+
+
+@flask_app.route('/', methods=['GET'])
+def index() -> str:
+    return render_template('base.html', data=None, family=None, error=None)
+
+
 
 
 if __name__ == '__main__':
