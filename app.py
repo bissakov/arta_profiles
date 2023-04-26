@@ -4,13 +4,14 @@ from typing import Any
 import logging
 import httpx
 from flask import Flask, jsonify, make_response, render_template, request
+from flask_cors import CORS
 from flask_caching import Cache
 
 from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
 
 
-flask_app = Flask(__name__)
+flask_app = CORS(Flask(__name__))
 
 
 @flask_app.route('/family', methods=['GET'])
