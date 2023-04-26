@@ -64,7 +64,7 @@ def index() -> str:
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
-    flask_app.logger.info(iin, request.method, sep='\t~~\t')
+    flask_app.logger.info(f'IIN: {iin}, METHOD: {request.method}')
 
     if request.method != 'POST':
         return render_template(base_html, data=iin, family=None, error=None)
