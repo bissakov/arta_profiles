@@ -1,4 +1,3 @@
-import argparse
 import csv
 import io
 from typing import Any
@@ -11,19 +10,17 @@ from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-p', '--port', type=int, required=True)
 logging.basicConfig(filename='record.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s',
                     encoding='utf-8')
 # logging.getLogger('httpx').setLevel(logging.WARNING)
 logging.getLogger('httpcore').setLevel(logging.WARNING)
 
-app = Flask(__name__)
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+flask_app = Flask(__name__)
+cache = Cache(flask_app, config={'CACHE_TYPE': 'simple'})
 
 
-@app.route('/family', methods=['GET'])
+@flask_app.route('/family', methods=['GET'])
 def get_family():
     iin = request.args.get('iin')
     try:
@@ -54,7 +51,7 @@ def convert_to_csv(family: Any) -> str:
     return csv_data.getvalue()
 
 
-@app.route('/download_csv', methods=['GET'])
+@flask_app.route('/download_csv', methods=['GET'])
 def download_csv():
     family = cache.get('family')
     response = make_response(convert_to_csv(family=family))
@@ -63,13 +60,13 @@ def download_csv():
     return response
 
 
-@app.route('/', methods=['GET', 'POST'])
+@flask_app.route('/', methods=['GET', 'POST'])
 def index() -> str:
-    app.logger.debug("Debug log info")
-    app.logger.info("Info log information")
-    app.logger.warning("Warning log info")
-    app.logger.error("Error log info")
-    app.logger.critical("Critical log info")
+    # flask_app.logger.debug("Debug log info")
+    # flask_app.logger.info("Info log information")
+    # flask_app.logger.warning("Warning log info")
+    # flask_app.logger.error("Error log info")
+    # flask_app.logger.critical("Critical log info")
 
     iin = request.form.get('data', '')
 
@@ -96,9 +93,4 @@ def index() -> str:
         error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
 
     return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
-
-
-if __name__ == '__main__':
-    args, unknown = parser.parse_known_args()
-    app.run(host='0.0.0.0', port=args.port, debug=True)
 
