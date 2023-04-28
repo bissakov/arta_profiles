@@ -4,6 +4,8 @@ person_data/*
 dev/*
 arta_family_db.db
 node_modules
+excel/*.json
+excel/*.xlsx
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
