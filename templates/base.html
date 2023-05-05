@@ -28,7 +28,7 @@
             {% endif %}
         </div>
         {% if family %}
-    <a href="download_csv" class="absolute bottom-0 right-0 mr-8 mb-6 text-6xl text-green-500 hover:text-green-600"><i class="fa fa-download" aria-hidden="true"></i></a>
+    <a href="download_xlsx?iin={{ data }}" class="absolute bottom-0 right-0 mr-8 mb-6 text-6xl text-green-500 hover:text-green-600"><i class="fa fa-download" aria-hidden="true"></i></a>
             <div class="family-portrait w-10/12 mx-auto flex justify-items-center space-x-4">
                 <div class="container basis-1/3">
                     {% if family['Члены семьи'] %}
@@ -77,10 +77,12 @@
                         <div class="info-container w-64 flex-none min-w-s place-self-start basis-80">
                             <div class="header pb-1 mb-1 font-bold text-center border-b-2 border-b-sky-500">Активы семьи</div>
                             {% for key, value in family['Активы семьи'].items() %}
+                              {% if value != 0 %}
                                 <div class="row flex">
                                     <div class="basis-2/3">{{ key }}</div>
                                     <div class="basis-1/3 self-start text-right">{{ value }}</div>
                                 </div>
+                              {% endif %}
                             {% endfor %}
                         </div>
                     {% endif %}

@@ -3,12 +3,13 @@ import io
 from typing import Any
 import logging
 import httpx
-from flask import Flask, jsonify, make_response, render_template, request
+from flask import Flask, jsonify, make_response, render_template, request, send_file
 from flask_cors import CORS
 from flask_caching import Cache
 
 from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
+from excel.excel import get_excel
 
 
 flask_app = Flask(__name__)
@@ -48,11 +49,29 @@ def convert_to_csv(family: Any) -> str:
 
 @flask_app.route('/download_csv', methods=['GET'])
 def download_csv():
-    family = cache.get('family')
+    # family = cache.get('family')
+    iin = request.args.get('iin')
+    if not iin:
+        raise WrongIIN()
+    family = get_family_data(iin=iin)
     response = make_response(convert_to_csv(family=family))
     response.headers.set('Content-Disposition', 'attachment', filename='data.csv')
     response.headers.set('Content-Type', 'text/csv')
     return response
+
+
+@flask_app.route('/download_xlsx', methods=['GET'])
+def download_xlsx():
+    # flask_app.logger.info(f'CACHE: {cache}, {type(cache)}')
+    # family = cache.get('family')
+    # flask_app.logger.info(f'{family}, {type(family)}')
+    
+    iin = request.args.get('iin')
+    flask_app.logger.info(f'IIN: {iin}')
+    if not iin:
+        raise WrongIIN()
+    family = get_family_data(iin=iin)
+    return send_file(get_excel(family=family), as_attachment=True)
 
 
 @flask_app.route('/', methods=['GET', 'POST'])
@@ -60,7 +79,7 @@ def index() -> str:
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
-    flask_app.logger.info(f'IIN: {iin}, METHOD: {request.method}')
+    cache.set('family', None, timeout=43200)
 
     if request.method != 'POST':
         return render_template(base_html, data=iin, family=None, error=None)

@@ -18,8 +18,8 @@ function waitForElm(selector) {
   });
 }
 
-waitForElm('.family-portrait').then((element) => {
-  const submitButton = document.querySelector('button[type="submit"]');
+waitForElm('.family-portrait').then(() => {
+  const submitButton = document.querySelector('button');
   submitButton.classList.remove('loading');
   submitButton.disabled = false;
   submitButton.textContent = 'Запросить';

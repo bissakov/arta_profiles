@@ -163,7 +163,3 @@ if __name__ == '__main__':
 
     rich.print(data)
 
-    print('\n\n')
-
-    rich.print(data.to_dict())
-
