@@ -1,1 +1,0 @@
-pyinstaller --clean --onefile --add-data 'templates:templates' --add-data 'static:static' --add-data 'family:family' --runtime-hook 'hooks/hook_playwright.py' --runtime-hook 'hooks/hook_secret.py' app.py

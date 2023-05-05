@@ -1,6 +1,4 @@
 from typing import Any, Dict 
-
-import rich
 from openpyxl import Workbook, styles
 from openpyxl.styles.borders import Border, Side
 from openpyxl.utils.cell import get_column_letter
@@ -26,7 +24,7 @@ def write_data(worksheet: Worksheet, family: Dict):
 
         data_cell = worksheet.cell(column=i, row=2)
         data_cell.value = data
-        if isinstance(data, (int, float)):
+        if isinstance(data, (int, float)) or ' ' not in data:
             data_cell.alignment = styles.Alignment(vertical='center', horizontal='center', wrap_text=True)
         else:
             data_cell.alignment = styles.Alignment(vertical='center', wrap_text=True)
@@ -76,5 +74,3 @@ def get_excel(family: Any = None) -> str:
 
     return excel_name
 
-if __name__ == '__main__':
-    get_excel()
