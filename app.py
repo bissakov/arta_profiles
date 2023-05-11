@@ -7,6 +7,7 @@ import httpx
 from flask import Flask, jsonify, make_response, render_template, request, send_file
 from flask_cors import CORS
 from flask_caching import Cache
+from urllib.parse import urlparse
 
 from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
 from family.family import get_family_data
@@ -75,7 +76,6 @@ def download_xlsx():
     return send_file(get_excel(family=family), as_attachment=True)
 
 
-# @flask_app.route(f'/{ROOT}', methods=['GET'])
 @flask_app.route('/', methods=['GET', 'POST'])
 def index() -> str:
     iin = request.form.get('data', '')
@@ -83,10 +83,12 @@ def index() -> str:
     base_html = 'base.html'
     cache.set('family', None, timeout=43200)
 
-    flask_app.logger.info(request.url)
+    parse_res = urlparse(request.url)
+
+    flask_app.logger.info(urlparse(request.url))
 
     if request.method != 'POST':
-        return render_template(base_html, data=iin, family=None, error=None)
+        return render_template(base_html, url_prefix=parse_res.path, data=iin, family=None, error=None)
 
     family = None
     error_msg = None
@@ -105,7 +107,7 @@ def index() -> str:
     except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ConnectError):
         error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'
 
-    return render_template('base.html', data=iin, family=family if family else None, error=error_msg)
+    return render_template('base.html', url_prefix=parse_res.path, data=iin, family=family if family else None, error=error_msg)
 
 
 if __name__ == '__main__':
