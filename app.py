@@ -1,3 +1,4 @@
+import os
 import csv
 import io
 from typing import Any
@@ -74,12 +75,15 @@ def download_xlsx():
     return send_file(get_excel(family=family), as_attachment=True)
 
 
+# @flask_app.route(f'/{ROOT}', methods=['GET'])
 @flask_app.route('/', methods=['GET', 'POST'])
 def index() -> str:
     iin = request.form.get('data', '')
 
     base_html = 'base.html'
     cache.set('family', None, timeout=43200)
+
+    flask_app.logger.info(request.url)
 
     if request.method != 'POST':
         return render_template(base_html, data=iin, family=None, error=None)
