@@ -86,6 +86,7 @@ def index() -> str:
     parse_res = urlparse(request.url)
 
     flask_app.logger.info(urlparse(request.url))
+    flask_app.logger.info(request.path)
 
     if request.method != 'POST':
         return render_template(base_html, url_prefix=parse_res.path, data=iin, family=None, error=None)
