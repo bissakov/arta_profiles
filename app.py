@@ -9,7 +9,7 @@ from flask_cors import CORS
 from flask_caching import Cache
 from urllib.parse import urlparse
 
-from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword
+from family.custom_exceptions import FamilyNotFound, WrongIIN, WrongPassword, IINNotInSections
 from family.family import get_family_data
 from excel.excel import get_excel
 
@@ -103,7 +103,7 @@ def index() -> str:
             # family = json.load(f)
         cache.set('family', family, timeout=43200)
 
-    except (FamilyNotFound, WrongIIN, WrongPassword) as e:
+    except (FamilyNotFound, WrongIIN, WrongPassword, IINNotInSections) as e:
         error_msg = e.error_msg
     except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ConnectError):
         error_msg = 'Нет подключения к VPN на сервере. Свяжитесь с администраторами'

@@ -15,3 +15,8 @@ class WrongIIN(Exception):
         super().__init__('Wrong iin')
         self.error_msg = 'Неверный ИИН. ИИН должен состоять из 12 цифр без букв и пробелов'
 
+
+class IINNotInSections(Exception):
+    def __init__(self):
+        super().__init__('IIN not in sections')
+        self.error_msg = 'ИИН не найден ни в одном из разделов "Нуждающиеся в мерах"'

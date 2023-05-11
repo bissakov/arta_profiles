@@ -6,11 +6,11 @@ from typing import Any, Dict, List
 import httpx
 
 try:
-    from family.custom_exceptions import FamilyNotFound, WrongIIN
+    from family.custom_exceptions import FamilyNotFound, WrongIIN, IINNotInSections
     from family.utils import get_env_vars, get_headers, is_valid_iin, get_risk_dict
     from family.entities import User, Family, Member, Risks
 except (ModuleNotFoundError, ImportError):
-    from custom_exceptions import FamilyNotFound, WrongIIN
+    from custom_exceptions import FamilyNotFound, WrongIIN, IINNotInSections
     from utils import get_env_vars, get_headers, is_valid_iin, get_risk_dict
     from entities import User, Family, Member, Risks
 
@@ -47,6 +47,35 @@ def get_member_data(family_data: Dict, iin: str) -> List[Member]:
 
 def family_exists(family_data: Dict) -> bool:
     return bool(family_data['family'])
+
+
+async def is_family_in_section(async_client: httpx.AsyncClient, iin: str, base_url: str) -> bool:
+
+
+    response = httpx.post(url=url, json=payload, headers=async_client.headers)
+
+    return response.json()['total'] > 0
+
+
+async def is_family_in_required_section(client: httpx.Client, base_url: str, iin: str) -> bool:
+    sections = [123, 120, 132, 131, 122, 121, 101, 130, 125, 126, 134, 124, 100, 93, 127]
+    client.headers['Content-Type'] = 'application/json'
+    async with httpx.AsyncClient(headers=client.headers, timeout=None) as async_client:
+        api_url = f'{base_url}/api/workspace/stat/page'
+        payload = {
+            'regionid': None,
+            'actioncode': '',
+            'countid': 0,
+            'iin': iin,
+            'page': 1,
+            'size': 1
+        }
+        tasks = []
+        for section in sections:
+            payload['countid'] = section
+            tasks.append(async_client.post(url=api_url, json=payload))
+        responses = await asyncio.gather(*tasks)
+    return any(response.json()['total'] > 0 for response in responses)
 
 
 async def get_person_details(family: Family, async_client: httpx.AsyncClient, base_url: str) -> List[Dict]:
@@ -138,6 +167,10 @@ def get_family_data(iin: str or None) -> Dict:
         auth_data = get_token(user=user, base_url=base_url, client=client)
         token = auth_data['accessToken']
         client.headers['Authorization'] = f'Bearer {token}'
+
+        if not asyncio.run(is_family_in_required_section(client=client, base_url=base_url, iin=iin)):
+            raise IINNotInSections()
+
         family = get_family(client=client, base_url=base_url, iin=iin)
 
     return family.to_dict()
