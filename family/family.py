@@ -6,11 +6,11 @@ from typing import Any, Dict, List
 import httpx
 
 try:
-    from family.custom_exceptions import FamilyNotFound, WrongIIN, IINNotInSections
+    from family.custom_exceptions import FamilyNotFound, WrongIIN, IINNotInSections, WrongPassword
     from family.utils import get_env_vars, get_headers, is_valid_iin, get_risk_dict
     from family.entities import User, Family, Member, Risks
 except (ModuleNotFoundError, ImportError):
-    from custom_exceptions import FamilyNotFound, WrongIIN, IINNotInSections
+    from custom_exceptions import FamilyNotFound, WrongIIN, IINNotInSections, WrongPassword
     from utils import get_env_vars, get_headers, is_valid_iin, get_risk_dict
     from entities import User, Family, Member, Risks
 
@@ -21,7 +21,10 @@ def get_token(user: User, base_url: str, client: httpx.Client) -> Dict[Any, Any]
         json={'username': user.username, 'password': user.password},
         timeout=3
     )
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError:
+        raise WrongPassword
     return response.json()
 
 

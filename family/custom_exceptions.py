@@ -7,7 +7,7 @@ class FamilyNotFound(Exception):
 class WrongPassword(Exception):
     def __init__(self):
         super().__init__(f'Wrong password')
-        self.error_msg = 'Неправильный пароль. Свяжитесь с администраторами'
+        self.error_msg = 'Неправильный пароль от ЦКС. Свяжитесь с администраторами'
 
 
 class WrongIIN(Exception):
