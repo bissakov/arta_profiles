@@ -52,27 +52,20 @@ def family_exists(family_data: Dict) -> bool:
     return bool(family_data['family'])
 
 
-async def is_family_in_section(async_client: httpx.AsyncClient, iin: str, base_url: str) -> bool:
-
-
-    response = httpx.post(url=url, json=payload, headers=async_client.headers)
-
-    return response.json()['total'] > 0
-
-
 async def is_family_in_required_section(client: httpx.Client, base_url: str, iin: str) -> bool:
     sections = [123, 120, 132, 131, 122, 121, 101, 130, 125, 126, 134, 124, 100, 93, 127]
+    api_url = f'{base_url}/api/workspace/stat/page'
+    payload = {
+        'regionid': None,
+        'actioncode': '',
+        'countid': 0,
+        'iin': iin,
+        'page': 1,
+        'size': 1
+    }
+
     client.headers['Content-Type'] = 'application/json'
     async with httpx.AsyncClient(headers=client.headers, timeout=None) as async_client:
-        api_url = f'{base_url}/api/workspace/stat/page'
-        payload = {
-            'regionid': None,
-            'actioncode': '',
-            'countid': 0,
-            'iin': iin,
-            'page': 1,
-            'size': 1
-        }
         tasks = []
         for section in sections:
             payload['countid'] = section
