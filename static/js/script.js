@@ -1,3 +1,6 @@
+const form = document.querySelector('form');
+form.action = window.location.href;
+
 const submitButton = document.querySelector('button');
 const inputBox = document.querySelector('input');
 

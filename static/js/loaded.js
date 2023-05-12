@@ -4,7 +4,7 @@ function waitForElm(selector) {
       return resolve(document.querySelector(selector));
     }
 
-    const observer = new MutationObserver(mutations => {
+    const observer = new MutationObserver(_ => {
       if (document.querySelector(selector)) {
         resolve(document.querySelector(selector));
         observer.disconnect();
@@ -44,3 +44,9 @@ nums.forEach((num) => {
   const formattedValue = value.toLocaleString('en-US', { maximumFractionDigits: 2 });
   num.textContent = formattedValue.replace(',', ' ');
 });
+
+const excelLinkElement = document.querySelector('a');
+const urlObj = new URL(a.href)
+const relPath = urlObj.pathname + urlObj.search
+excelLinkElement.href = window.location.href + relPath;
+
